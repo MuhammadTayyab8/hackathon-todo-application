@@ -1,55 +1,91 @@
-# [PROJECT_NAME] Constitution
-<!-- Example: Spec Constitution, TaskFlow Constitution, etc. -->
+<!--
+Sync Impact Report
+Version change: 1.0.0 (Initial)
+Modified principles:
+- I. Spec-Driven Development (SDD)
+- II. Phased Development (Phase 1-3)
+- III. Technology Stack (Next.js/FastAPI/SQLModel/Neon)
+- IV. Authentication & Security (JWT/Better Auth)
+- V. API Design & Scoping (RESTful/User-Scoped)
+- VI. Spec Management (Specs as Single Source of Truth)
+- VII. Quality & Review (Clarity/Maintainability)
+Added sections: Technology Stack, Security & API Rules, Database & Frontend Rules
+Removed sections: N/A
+Templates requiring updates:
+- .specify/templates/plan-template.md (✅ updated)
+- .specify/templates/spec-template.md (✅ updated)
+- .specify/templates/tasks-template.md (✅ updated)
+Follow-up TODOs: N/A
+-->
+
+# Hackathon Todo Application Constitution
 
 ## Core Principles
 
-### [PRINCIPLE_1_NAME]
-<!-- Example: I. Library-First -->
-[PRINCIPLE_1_DESCRIPTION]
-<!-- Example: Every feature starts as a standalone library; Libraries must be self-contained, independently testable, documented; Clear purpose required - no organizational-only libraries -->
+### I. Spec-Driven Development (SDD)
+- All development MUST follow the sequence: Constitution → Specification → Planning → Task Breakdown → Implementation.
+- Specifications are the single source of truth for all features and logic.
+- If implementation conflicts with specs, specs MUST be updated and approved first.
+- Strictly adhere to AI-driven implementation workflows.
 
-### [PRINCIPLE_2_NAME]
-<!-- Example: II. CLI Interface -->
-[PRINCIPLE_2_DESCRIPTION]
-<!-- Example: Every library exposes functionality via CLI; Text in/out protocol: stdin/args → stdout, errors → stderr; Support JSON + human-readable formats -->
+### II. Phased Development
+- Implementation MUST proceed through defined phases:
+  - Phase 1 (phase1-console): Task CRUD logic only.
+  - Phase 2 (phase2-web): Task CRUD + Authentication + Web UI.
+  - Phase 3 (phase3-chatbot): Task CRUD + Authentication + Chatbot.
+- Only features explicitly allowed in the active phase MUST be implemented.
 
-### [PRINCIPLE_3_NAME]
-<!-- Example: III. Test-First (NON-NEGOTIABLE) -->
-[PRINCIPLE_3_DESCRIPTION]
-<!-- Example: TDD mandatory: Tests written → User approved → Tests fail → Then implement; Red-Green-Refactor cycle strictly enforced -->
+### III. Technology Stack (Static)
+- Frontend: Next.js 16+ using App Router.
+- Backend: Python FastAPI.
+- ORM: SQLModel.
+- Database: Neon Serverless PostgreSQL.
+- Authentication: Better Auth (Next.js) with JWT tokens.
+- API Style: REST.
+- Repository: Monorepo.
 
-### [PRINCIPLE_4_NAME]
-<!-- Example: IV. Integration Testing -->
-[PRINCIPLE_4_DESCRIPTION]
-<!-- Example: Focus areas requiring integration tests: New library contract tests, Contract changes, Inter-service communication, Shared schemas -->
+### IV. Authentication & Security
+- All backend API routes MUST require JWT authentication.
+- JWT tokens are issued by Better Auth on the frontend and sent in the `Authorization: Bearer <token>` header.
+- Backend MUST verify JWT using the shared secret `BETTER_AUTH_SECRET`.
+- User identity MUST be extracted from the JWT; client-supplied IDs MUST be verified against the token.
+- Requests without a valid JWT MUST return 401 Unauthorized.
 
-### [PRINCIPLE_5_NAME]
-<!-- Example: V. Observability, VI. Versioning & Breaking Changes, VII. Simplicity -->
-[PRINCIPLE_5_DESCRIPTION]
-<!-- Example: Text I/O ensures debuggability; Structured logging required; Or: MAJOR.MINOR.BUILD format; Or: Start simple, YAGNI principles -->
+### V. API Design & Scoping
+- RESTful endpoints only: `/api/{user_id}/tasks`.
+- All data access and modifications MUST be scoped to the authenticated user.
+- No user may access or modify another user’s data.
+- Backend MUST verify that the `{user_id}` in the URL matches the JWT user ID.
 
-### [PRINCIPLE_6_NAME]
+### VI. Spec Management
+- All specifications MUST be written into the `specs/` directory using an organized structure:
+  - `specs/features/`
+  - `specs/api/`
+  - `specs/database/`
+  - `specs/ui/`
+- Specs MUST evolve through the `/sp.specify` command, not manual edits.
 
+### VII. Quality & Review
+- Prefer clarity over cleverness; code MUST be readable and maintainable.
+- Implementation MUST be traceable back to specifications.
+- Spec drift MUST be identified and corrected proactively.
 
-[PRINCIPLE__DESCRIPTION]
+## Technology & Infrastructure
 
-## [SECTION_2_NAME]
-<!-- Example: Additional Constraints, Security Requirements, Performance Standards, etc. -->
+### Database Rules
+- Use SQLModel models derived strictly from specifications.
+- Tasks MUST be linked to users via a `user_id` foreign key.
+- No direct database access from the frontend; all persistence MUST go through the backend API.
 
-[SECTION_2_CONTENT]
-<!-- Example: Technology stack requirements, compliance standards, deployment policies, etc. -->
-
-## [SECTION_3_NAME]
-<!-- Example: Development Workflow, Review Process, Quality Gates, etc. -->
-
-[SECTION_3_CONTENT]
-<!-- Example: Code review requirements, testing gates, deployment approval process, etc. -->
+### Frontend Rules
+- Frontend MUST never store secrets (API keys, shared secrets).
+- JWT handling and session management MUST be done via Better Auth.
+- All API calls MUST attach the JWT automatically.
+- UI MUST be responsive and aware of multiple users.
 
 ## Governance
-<!-- Example: Constitution supersedes all other practices; Amendments require documentation, approval, migration plan -->
+- This Constitution supersedes all other development practices in the project.
+- Amendments to the Constitution MUST be documented, versioned, and propagate to all templates.
+- All Pull Requests and implementation tasks MUST be checked against these principles for compliance.
 
-[GOVERNANCE_RULES]
-<!-- Example: All PRs/reviews must verify compliance; Complexity must be justified; Use [GUIDANCE_FILE] for runtime development guidance -->
-
-**Version**: [CONSTITUTION_VERSION] | **Ratified**: [RATIFICATION_DATE] | **Last Amended**: [LAST_AMENDED_DATE]
-<!-- Example: Version: 2.1.1 | Ratified: 2025-06-13 | Last Amended: 2025-07-16 -->
+**Version**: 1.0.0 | **Ratified**: 2026-01-04 | **Last Amended**: 2026-01-04

@@ -62,8 +62,8 @@
 
 ### Implementation for User Story 2
 
-- [ ] T013 [US2] Implement sticky Navbar with functional navigation links in `frontend/components/layout/Navbar.tsx`
-- [ ] T014 [US2] Integrate Navbar into `frontend/app/layout.tsx`
+- [x] T013 [US2] Implement sticky Navbar with functional navigation links in `frontend/components/layout/Navbar.tsx`
+- [x] T014 [US2] Integrate Navbar into `frontend/app/layout.tsx`
 
 **Checkpoint**: At this point, User Stories 1 AND 2 should both work independently
 
@@ -77,8 +77,8 @@
 
 ### Implementation for User Story 3
 
-- [ ] T015 [US3] Add mobile-responsive menu (hamburger) logic to `frontend/components/layout/Navbar.tsx`
-- [ ] T016 [US3] Review and adjust grid stacking for Features section on mobile in `frontend/components/landing/Features.tsx`
+- [x] T015 [US3] Add mobile-responsive menu (hamburger) logic to `frontend/components/layout/Navbar.tsx`
+- [x] T016 [US3] Review and adjust grid stacking for Features section on mobile in `frontend/components/landing/Features.tsx`
 
 **Checkpoint**: All user stories should now be independently functional
 
@@ -88,9 +88,9 @@
 
 **Purpose**: Improvements that affect multiple user stories
 
-- [ ] T017 Implement Dark Mode theme support using `next-themes` in `frontend/components/providers/ThemeProvider.tsx`
-- [ ] T018 Integrate `ThemeProvider` into `frontend/app/layout.tsx`
-- [ ] T019 Final UI review against design system and accessibility (WCAG) check
+- [x] T017 Implement Dark Mode theme support using `next-themes` in `frontend/components/providers/ThemeProvider.tsx`
+- [x] T018 Integrate `ThemeProvider` into `frontend/app/layout.tsx`
+- [x] T019 Final UI review against design system and accessibility (WCAG) check
 
 ---
 

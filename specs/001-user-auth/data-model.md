@@ -1,0 +1,293 @@
+# Data Model: User Authentication
+
+**Feature**: 001-user-auth
+**Date**: 2026-01-05
+
+## Overview
+
+This document defines the data models for user authentication, including the User entity and related data structures.
+
+---
+
+## User Entity
+
+### Purpose
+
+Represents an authenticated user account with credentials and profile information. Each user has isolated access to their own tasks and data.
+
+### Fields
+
+| Field | Type | Constraints | Description |
+|-------|------|-------------|-------------|
+| `id` | string (UUID) | Primary key, required | Unique identifier for the user |
+| `email` | string | Unique, required, max 255 chars | User's email address for sign-in |
+| `username` | string | Unique, required, max 100 chars | User's display name |
+| `hashed_password` | string | Required, max 255 chars | Securely hashed password (bcrypt) |
+| `created_at` | datetime | Required, auto-generated | Timestamp when account was created |
+
+### Validation Rules
+
+- `email`: Must be valid email format, case-insensitive uniqueness
+- `username`: Must be 3-100 characters, alphanumeric with underscores allowed
+- `password` (before hashing): Minimum 12 characters, at least one uppercase, one lowercase, one number, one special character
+- `hashed_password`: Must be bcrypt hash (never stored as plaintext)
+
+### State Transitions
+
+```
+[New User] → Account Created → [Active User] → (Optional) Account Deleted
+                     ↓
+            Sign In / Sign Out (multiple times)
+```
+
+---
+
+## Database Schema
+
+### SQL Definition (PostgreSQL)
+
+```sql
+CREATE TABLE users (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    email VARCHAR(255) UNIQUE NOT NULL,
+    username VARCHAR(100) UNIQUE NOT NULL,
+    hashed_password VARCHAR(255) NOT NULL,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+);
+
+-- Indexes for performance
+CREATE INDEX idx_users_email ON users(email);
+CREATE INDEX idx_users_username ON users(username);
+```
+
+### SQLModel Definition
+
+```python
+from typing import Optional
+from sqlmodel import Field, SQLModel
+from datetime import datetime
+import uuid
+
+class User(SQLModel, table=True):
+    __tablename__ = "users"
+
+    id: str = Field(default_factory=lambda: str(uuid.uuid4()), primary_key=True)
+    email: str = Field(unique=True, index=True, max_length=255)
+    username: str = Field(unique=True, index=True, max_length=100)
+    hashed_password: str = Field(max_length=255)
+    created_at: datetime = Field(default_factory=datetime.utcnow)
+```
+
+---
+
+## Request/Response Models
+
+### UserCreate (DTO)
+
+Used for account creation requests.
+
+```python
+class UserCreate(SQLModel):
+    email: str = Field(max_length=255)
+    username: str = Field(max_length=100, min_length=3)
+    password: str = Field(min_length=12)
+```
+
+**Validation**:
+- Email: valid format
+- Username: 3-100 characters, alphanumeric + underscores
+- Password: See password requirements above
+
+### UserRead (DTO)
+
+Used for user data responses (excludes password).
+
+```python
+class UserRead(SQLModel):
+    id: str
+    email: str
+    username: str
+    created_at: datetime
+```
+
+### UserSignIn (DTO)
+
+Used for sign-in requests.
+
+```python
+class UserSignIn(SQLModel):
+    email: str = Field(max_length=255)
+    password: str
+```
+
+### AuthResponse (DTO)
+
+Used for sign-in/sign-up responses.
+
+```python
+class AuthResponse(SQLModel):
+    user: UserRead
+    token: str
+    expires_at: datetime
+```
+
+---
+
+## Relationships
+
+### User → Tasks (Future)
+
+Although not part of this feature, users will be linked to tasks via a `user_id` foreign key in the `tasks` table.
+
+```sql
+-- Future tasks table (for reference)
+CREATE TABLE tasks (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    user_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+    title VARCHAR(255) NOT NULL,
+    description TEXT,
+    completed BOOLEAN DEFAULT FALSE,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE INDEX idx_tasks_user_id ON tasks(user_id);
+```
+
+### Cascade Rules
+
+- When a user is deleted, all associated tasks are automatically deleted (CASCADE)
+- Users cannot be deleted if they have active sessions (enforced by application logic)
+
+---
+
+## Data Lifecycle
+
+### Account Creation Flow
+
+1. User provides `email`, `username`, and `password`
+2. Validate email format, username uniqueness, password strength
+3. Hash password using bcrypt (12 rounds)
+4. Create `User` record in database
+5. Return `UserRead` DTO and JWT token
+
+### Sign-In Flow
+
+1. User provides `email` and `password`
+2. Find user by email
+3. Verify password using bcrypt
+4. Generate JWT token with user ID
+5. Return `AuthResponse` with user data and token
+
+### Sign-Out Flow
+
+1. User clicks sign-out
+2. Clear JWT token from client-side storage
+3. Redirect to sign-in page
+
+---
+
+## Security Considerations
+
+### Password Hashing
+
+- Algorithm: bcrypt with 12 rounds
+- Salt: Automatically generated by bcrypt
+- No plaintext passwords stored at any time
+
+### JWT Token Format
+
+```typescript
+interface JWTPayload {
+  userId: string;
+  email: string;
+  username: string;
+  iat: number;  // Issued at timestamp
+  exp: number;  // Expiration timestamp (7 days)
+}
+```
+
+### Sensitive Data Protection
+
+- `hashed_password` is never exposed in API responses
+- Passwords are transmitted over HTTPS only
+- Database connection uses SSL/TLS
+- Environment variables for secrets (never committed)
+
+---
+
+## Constraints and Invariants
+
+### Uniqueness Constraints
+
+- `email`: Must be unique across all users
+- `username`: Must be unique across all users
+- `id`: Automatically unique (UUID)
+
+### Non-Null Constraints
+
+- `id`: Required (auto-generated)
+- `email`: Required
+- `username`: Required
+- `hashed_password`: Required
+- `created_at`: Required (auto-generated)
+
+### Data Integrity
+
+- Foreign key constraints enforced by database
+- Cascade deletes for user → tasks relationship
+- Transactions for multi-step operations
+
+---
+
+## Migration Strategy
+
+### Initial Migration
+
+```sql
+-- Create users table
+CREATE TABLE users (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    email VARCHAR(255) UNIQUE NOT NULL,
+    username VARCHAR(100) UNIQUE NOT NULL,
+    hashed_password VARCHAR(255) NOT NULL,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE INDEX idx_users_email ON users(email);
+CREATE INDEX idx_users_username ON users(username);
+```
+
+### Future Migrations
+
+- Add `updated_at` timestamp if needed
+- Add `last_login_at` timestamp
+- Add email verification fields
+- Add password reset tokens table
+
+---
+
+## Testing Considerations
+
+### Unit Tests
+
+- Password hashing and verification
+- User creation with valid/invalid data
+- Email uniqueness validation
+- Username uniqueness validation
+
+### Integration Tests
+
+- End-to-end signup flow
+- Sign-in with valid/invalid credentials
+- Sign-out clears session
+- Concurrent sign-ins from multiple devices
+
+### Edge Cases
+
+- Duplicate email signup attempt
+- Duplicate username signup attempt
+- Weak password rejection
+- Sign-in with non-existent email
+- Sign-in with wrong password
+- Database connection failure during user creation

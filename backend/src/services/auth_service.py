@@ -101,6 +101,23 @@ async def create_user(session: AsyncSession, user_create: UserCreate) -> User:
     await session.refresh(new_user)
     return new_user
 
+async def authenticate_user(session: AsyncSession, email: str, password: str) -> Optional[User]:
+    """
+    Find user by email and verify password.
+    Returns User if valid, None otherwise.
+    """
+    statement = select(User).where(User.email == email)
+    result = await session.exec(statement)
+    user = result.first()
+
+    if not user:
+        return None
+
+    if not verify_password(password, user.hashed_password):
+        return None
+
+    return user
+
 def create_jwt_token(user: User) -> str:
     """
     Generate HS256-signed JWT token with:

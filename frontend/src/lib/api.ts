@@ -1,3 +1,5 @@
+import { authClient } from './auth'
+
 const API_BASE = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000'
 
 class ApiClient {
@@ -21,10 +23,12 @@ class ApiClient {
 
     if (!response.ok) {
       if (response.status === 401) {
-        window.location.href = '/signin'
+        if (typeof window !== 'undefined') {
+          window.location.href = '/signin'
+        }
       }
       const error = await response.json()
-      throw new Error(error.error || 'API error')
+      throw new Error(error.error || error.detail || 'API error')
     }
 
     return response.json()
@@ -42,9 +46,8 @@ class ApiClient {
   }
 
   private async getSession() {
-    // Session will be managed by Better Auth
-    // Placeholder - will be populated when Better Auth is configured
-    return null
+    const { data: session } = await authClient.getSession()
+    return session
   }
 }
 

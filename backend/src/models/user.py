@@ -15,7 +15,7 @@ class User(UserBase, table=True):
         nullable=False,
     )
     hashed_password: str
-    created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
+    created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc).replace(tzinfo=None))
 
 class UserCreate(UserBase):
     password: str
@@ -23,3 +23,12 @@ class UserCreate(UserBase):
 class UserRead(UserBase):
     id: uuid.UUID
     created_at: datetime
+
+class UserSignIn(SQLModel):
+    email: str
+    password: str
+
+class AuthResponse(SQLModel):
+    user: UserRead
+    token: str
+    expires_at: datetime

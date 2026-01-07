@@ -71,56 +71,56 @@ description: "Task list for user authentication implementation"
 
 #### Backend: User Model
 
-- [ ] T013 [P] [US1] Create User SQLModel table class with id (UUID), email (unique), username (unique), hashed_password, created_at fields in backend/src/models/user.py using sqlmodel skill
-- [ ] T014 [US1] Create UserCreate SQLModel DTO class with email, username, password fields in backend/src/models/user.py using sqlmodel skill
-- [ ] T015 [US1] Create UserRead SQLModel DTO class with id, email, username, created_at fields in backend/src/models/user.py using sqlmodel skill
+- [X] T013 [P] [US1] Create User SQLModel table class with id (UUID), email (unique), username (unique), hashed_password, created_at fields in backend/src/models/user.py using sqlmodel skill
+- [X] T014 [US1] Create UserCreate SQLModel DTO class with email, username, password fields in backend/src/models/user.py using sqlmodel skill
+- [X] T015 [US1] Create UserRead SQLModel DTO class with id, email, username, created_at fields in backend/src/models/user.py using sqlmodel skill
 
 #### Backend: Auth Service
 
-- [ ] T016 [US1] Create hash_password() function using bcrypt with 12 rounds in backend/src/services/auth_service.py using sqlmodel skill
-- [ ] T017 [US1] Create verify_password() function using bcrypt in backend/src/services/auth_service.py using sqlmodel skill
-- [ ] T018 [US1] Create validate_password() function with complexity rules (12+ chars, uppercase, lowercase, number, special char) in backend/src/services/auth_service.py using sqlmodel skill
-- [ ] T019 [US1] Create create_user() async function that validates password, checks email/username uniqueness, hashes password, and creates User record in backend/src/services/auth_service.py using sqlmodel skill
-- [ ] T020 [US1] Create create_jwt_token() function that generates HS256-signed JWT with userId, email, username, iat, exp claims in backend/src/services/auth_service.py using python-fastapi skill
+- [X] T016 [US1] Create hash_password() function using bcrypt with 12 rounds in backend/src/services/auth_service.py using sqlmodel skill
+- [X] T017 [US1] Create verify_password() function using bcrypt in backend/src/services/auth_service.py using sqlmodel skill
+- [X] T018 [US1] Create validate_password() function with complexity rules (12+ chars, uppercase, lowercase, number, special char) in backend/src/services/auth_service.py using sqlmodel skill
+- [X] T019 [US1] Create create_user() async function that validates password, checks email/username uniqueness, hashes password, and creates User record in backend/src/services/auth_service.py using sqlmodel skill
+- [X] T020 [US1] Create create_jwt_token() function that generates HS256-signed JWT with userId, email, username, iat, exp claims in backend/src/services/auth_service.py using python-fastapi skill
 
 #### Backend: JWT Middleware
 
-- [ ] T021 [US1] Create JWTAuthMiddleware class in backend/src/api/middleware/jwt_middleware.py using python-fastapi skill
-- [ ] T022 [US1] Implement JWT verification logic in JWTAuthMiddleware that extracts token from Authorization header, decodes with BETTER_AUTH_SECRET, and extracts userId using python-fastapi skill
-- [ ] T023 [US1] Implement public routes whitelist for /api/auth/signup, /api/auth/signin, /health in JWTAuthMiddleware using python-fastapi skill
-- [ ] T024 [US1] Implement 401 Unauthorized error handling for missing/invalid/expired tokens in JWTAuthMiddleware using python-fastapi skill
-- [ ] T025 [US1] Add user_id to request.state after successful JWT verification in JWTAuthMiddleware using python-fastapi skill
+- [X] T021 [US1] Create JWTAuthMiddleware class in backend/src/api/middleware/jwt_middleware.py using python-fastapi skill
+- [X] T022 [US1] Implement JWT verification logic in JWTAuthMiddleware that extracts token from Authorization header, decodes with BETTER_AUTH_SECRET, and extracts userId using python-fastapi skill
+- [X] T023 [US1] Implement public routes whitelist for /api/auth/signup, /api/auth/signin, /health in JWTAuthMiddleware using python-fastapi skill
+- [X] T024 [US1] Implement 401 Unauthorized error handling for missing/invalid/expired tokens in JWTAuthMiddleware using python-fastapi skill
+- [X] T025 [US1] Add user_id to request.state after successful JWT verification in JWTAuthMiddleware using python-fastapi skill
 
 #### Backend: Auth Routes
 
-- [ ] T026 [US1] Create FastAPI auth router with /api/auth prefix in backend/src/api/routes/auth.py using python-fastapi skill
-- [ ] T027 [US1] Implement POST /api/auth/signup endpoint that validates UserCreate, calls create_user(), returns AuthResponse with JWT token in backend/src/api/routes/auth.py using python-fastapi skill
-- [ ] T028 [US1] Implement email uniqueness validation with 409 Conflict error for duplicate emails in POST /api/auth/signup using python-fastapi skill
-- [ ] T029 [US1] Implement username uniqueness validation with 409 Conflict error for duplicate usernames in POST /api/auth/signup using python-fastapi skill
-- [ ] T030 [US1] Implement password complexity validation with 400 Bad Request error for weak passwords in POST /api/auth/signup using python-fastapi skill
-- [ ] T031 [US1] Add JWTAuthMiddleware to FastAPI app in backend/main.py using python-fastapi skill
-- [ ] T032 [US1] Include auth router in FastAPI app in backend/main.py using python-fastapi skill
-- [ ] T033 [US1] Add database initialization on app startup in backend/main.py using sqlmodel skill
+- [X] T026 [US1] Create FastAPI auth router with /api/auth prefix in backend/src/api/routes/auth.py using python-fastapi skill
+- [X] T027 [US1] Implement POST /api/auth/signup endpoint that validates UserCreate, calls create_user(), returns AuthResponse with JWT token in backend/src/api/routes/auth.py using python-fastapi skill
+- [X] T028 [US1] Implement email uniqueness validation with 409 Conflict error for duplicate emails in POST /api/auth/signup using python-fastapi skill
+- [X] T029 [US1] Implement username uniqueness validation with 409 Conflict error for duplicate usernames in POST /api/auth/signup using python-fastapi skill
+- [X] T030 [US1] Implement password complexity validation with 400 Bad Request error for weak passwords in POST /api/auth/signup using python-fastapi skill
+- [X] T031 [US1] Add JWTAuthMiddleware to FastAPI app in backend/main.py using python-fastapi skill
+- [X] T032 [US1] Include auth router in FastAPI app in backend/main.py using python-fastapi skill
+- [X] T033 [US1] Add database initialization on app startup in backend/main.py using sqlmodel skill
 
 #### Frontend: Better Auth Configuration
 
-- [ ] T034 [US1] Configure Better Auth with JWT plugin in frontend/src/lib/auth.ts using better-auth skill
-- [ ] T034 [US1] Set JWT plugin options (issuer: "todo-app", expiresIn: "7d", refresh: false) in frontend/src/lib/auth.ts using better-auth skill
-- [ ] T035 [US1] Enable emailAndPassword authentication (requireEmailVerification: false) in frontend/src/lib/auth.ts using better-auth skill
-- [ ] T036 [US1] Export authClient from frontend/src/lib/auth.ts using better-auth skill
+- [X] T034 [US1] Configure Better Auth with JWT plugin in frontend/src/lib/auth.ts using better-auth skill
+- [X] T034 [US1] Set JWT plugin options (issuer: "todo-app", expiresIn: "7d", refresh: false) in frontend/src/lib/auth.ts using better-auth skill
+- [X] T035 [US1] Enable emailAndPassword authentication (requireEmailVerification: false) in frontend/src/lib/auth.ts using better-auth skill
+- [X] T036 [US1] Export authClient from frontend/src/lib/auth.ts using better-auth skill
 
 #### Frontend: Sign Up Form
 
-- [ ] T037 [US1] Create SignUpForm client component with email, username, password state fields in frontend/src/components/auth/SignUpForm.tsx using frontend-agent and skills ui-ux-designer then forward to frontend-design
-- [ ] T038 [US1] Implement form submission handler calling authClient.signUp.email() in SignUpForm using frontend-agent skill
-- [ ] T039 [US1] Add error state and display for sign up failures in SignUpForm using frontend-agent skill
-- [ ] T040 [US1] Add loading state and disable submit button during sign up in SignUpForm using frontend-agent skill
-- [ ] T041 [US1] Add password complexity requirements hint in SignUpForm using frontend-agent skill
+- [X] T037 [US1] Create SignUpForm client component with email, username, password state fields in frontend/src/components/auth/SignUpForm.tsx using frontend-agent and skills ui-ux-designer then forward to frontend-design
+- [X] T038 [US1] Implement form submission handler calling authClient.signUp.email() in SignUpForm using frontend-agent skill
+- [X] T039 [US1] Add error state and display for sign up failures in SignUpForm using frontend-agent skill
+- [X] T040 [US1] Add loading state and disable submit button during sign up in SignUpForm using frontend-agent skill
+- [X] T041 [US1] Add password complexity requirements hint in SignUpForm using frontend-agent skill
 
 #### Frontend: Sign Up Page
 
-- [ ] T042 [US1] Create /app/(auth)/signup/page.tsx server component that renders SignUpForm using frontend-agent skill
-- [ ] T043 [US1] Add navigation link to /signin page in /app/(auth)/signup/page.tsx using frontend-agent skill
+- [X] T042 [US1] Create /app/(auth)/signup/page.tsx server component that renders SignUpForm using frontend-agent skill
+- [X] T043 [US1] Add navigation link to /signin page in /app/(auth)/signup/page.tsx using frontend-agent skill
 
 **Checkpoint**: At this point, User Story 1 (New User Account Creation) should be fully functional and testable independently. Users can create accounts, see validation errors for invalid inputs, and successfully create accounts.
 

@@ -2,7 +2,7 @@
 
 import * as React from "react"
 import { useRouter } from "next/navigation"
-import { authClient } from "@/lib/auth"
+import { api } from "@/lib/api"
 import { Button } from "@/components/ui/Button"
 import { Eye, EyeOff, Loader2, KeyRound, Mail, Lock } from "lucide-react"
 
@@ -32,19 +32,18 @@ export default function SignInForm() {
     setError(null)
 
     try {
-      const { data, error } = await authClient.signIn.email({
+      const res = await api.post<{ token: string }>("/api/auth/signin", {
         email: formData.email,
         password: formData.password,
-        callbackURL: "/"
       })
 
-      if (error) {
-        setError(error.message || "Invalid email or password.")
-      } else {
-        router.push("/")
+      if (res.token) {
+        localStorage.setItem("token", res.token)
       }
-    } catch (err) {
-      setError("Failed to connect to authentication service.")
+
+      router.push("/")
+    } catch (err: any) {
+      setError(err.message || "Invalid email or password.")
     } finally {
       setIsLoading(false)
     }

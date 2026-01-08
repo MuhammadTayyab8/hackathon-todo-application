@@ -20,6 +20,12 @@ PUBLIC_ROUTES = [
 
 class JWTAuthMiddleware(BaseHTTPMiddleware):
     async def dispatch(self, request: Request, call_next):
+        # Allow OPTIONS requests unconditionally so CORS middleware can handle them
+        print(request.url.path, "request.url.path")
+        
+        if request.method == "OPTIONS":
+            return await call_next(request)
+
         # 1. Implementation of public routes whitelist (T023)
         if any(request.url.path.startswith(route) for route in PUBLIC_ROUTES):
             return await call_next(request)

@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends, HTTPException, status, Request
+from fastapi import APIRouter, Depends, HTTPException, status, Request, Response
 from fastapi.security import HTTPBearer
 from sqlmodel.ext.asyncio.session import AsyncSession
 from src.db import get_session
@@ -10,9 +10,14 @@ from sqlmodel import select
 router = APIRouter()
 security = HTTPBearer()
 
+@router.options("/signup")
+async def options_signup():
+    return Response(status_code=200)
+
 @router.post("/signup", response_model=AuthResponse, status_code=status.HTTP_201_CREATED)
 async def signup(user_data: UserCreate, session: AsyncSession = Depends(get_session)):
     try:
+        print("API CALL")
         user = await create_user(session, user_data)
         token = create_jwt_token(user)
         # Expiry is set to 7 days in auth_service.py
@@ -32,6 +37,10 @@ async def signup(user_data: UserCreate, session: AsyncSession = Depends(get_sess
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=error_msg)
     except Exception as e:
         raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=str(e))
+
+@router.options("/signin")
+async def options_signin():
+    return Response(status_code=200)
 
 @router.post("/signin", response_model=AuthResponse)
 async def signin(credentials: UserSignIn, session: AsyncSession = Depends(get_session)):

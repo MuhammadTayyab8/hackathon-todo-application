@@ -2,7 +2,7 @@
 
 import * as React from "react"
 import { useRouter } from "next/navigation"
-import { authClient } from "@/lib/auth"
+import { api } from "@/lib/api"
 import { Button } from "@/components/ui/Button"
 import { Eye, EyeOff, Loader2, Check, X, ShieldCheck, Mail, User, Lock } from "lucide-react"
 
@@ -48,21 +48,19 @@ export default function SignUpForm() {
     setError(null)
 
     try {
-      const { data, error } = await authClient.signUp.email({
+      const res = await api.post<{ token: string }>("/api/auth/signup", {
         email: formData.email,
         password: formData.password,
-        name: formData.username,
-        username: formData.username, // Sending both in case one is preferred by the client/server
-        callbackURL: "/"
+        username: formData.username,
       })
 
-      if (error) {
-        setError(error.message || "An error occurred during sign up.")
-      } else {
-        router.push("/")
+      if (res.token) {
+        localStorage.setItem("token", res.token)
       }
-    } catch (err) {
-      setError("Failed to connect to authentication service.")
+
+      router.push("/")
+    } catch (err: any) {
+      setError(err.message || "An error occurred during sign up.")
     } finally {
       setIsLoading(false)
     }

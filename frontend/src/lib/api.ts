@@ -1,14 +1,27 @@
-import { authClient } from './auth'
+// import { authClient } from './auth'
 
 const API_BASE = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000'
+
+export interface Task {
+  id: string
+  user_id: string
+  content: string
+  completed: boolean
+  created_at: string
+  updated_at: string
+}
+
+export interface TaskUpdate {
+  content?: string
+  completed?: boolean
+}
 
 class ApiClient {
   private async request<T>(
     endpoint: string,
     options: RequestInit = {}
   ): Promise<T> {
-    const session = await this.getSession()
-    const token = session?.token
+    const token = this.getToken()
 
     const headers: HeadersInit = {
       'Content-Type': 'application/json',
@@ -24,7 +37,9 @@ class ApiClient {
     if (!response.ok) {
       if (response.status === 401) {
         if (typeof window !== 'undefined') {
-          window.location.href = '/signin'
+          // window.location.href = '/signin'
+          // Optional: Clear token on 401
+          localStorage.removeItem('token')
         }
       }
       const error = await response.json()
@@ -45,9 +60,54 @@ class ApiClient {
     })
   }
 
-  private async getSession() {
-    const { data: session } = await authClient.getSession()
-    return session
+  async put<T>(endpoint: string, data: any) {
+    return this.request<T>(endpoint, {
+      method: 'PUT',
+      body: JSON.stringify(data)
+    })
+  }
+
+  async patch<T>(endpoint: string, data: any = {}) {
+    return this.request<T>(endpoint, {
+      method: 'PATCH',
+      body: JSON.stringify(data)
+    })
+  }
+
+  async delete(endpoint: string) {
+    return this.request<void>(endpoint, { method: 'DELETE' })
+  }
+
+  // Task API Methods
+  async getTasks(userId: string) {
+    return this.get<Task[]>(`/api/${userId}/tasks`)
+  }
+
+  async createTask(userId: string, content: string) {
+    return this.post<Task>(`/api/${userId}/tasks`, { content })
+  }
+
+  async getTask(userId: string, taskId: string) {
+    return this.get<Task>(`/api/${userId}/tasks/${taskId}`)
+  }
+
+  async updateTask(userId: string, taskId: string, data: TaskUpdate) {
+    return this.put<Task>(`/api/${userId}/tasks/${taskId}`, data)
+  }
+
+  async deleteTask(userId: string, taskId: string) {
+    return this.delete(`/api/${userId}/tasks/${taskId}`)
+  }
+
+  async toggleTaskComplete(userId: string, taskId: string) {
+    return this.patch<Task>(`/api/${userId}/tasks/${taskId}/complete`)
+  }
+
+  private getToken() {
+    if (typeof window !== 'undefined') {
+      return localStorage.getItem('token')
+    }
+    return null
   }
 }
 

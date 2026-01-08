@@ -46,8 +46,7 @@ async def create_task(
     session: AsyncSession = Depends(get_session)
 ):
     await verify_user_access(user_id, request)
-    task = Task.from_orm(task_in)
-    task.user_id = user_id
+    task = Task(**task_in.model_dump(), user_id=user_id)
     session.add(task)
     await session.commit()
     await session.refresh(task)

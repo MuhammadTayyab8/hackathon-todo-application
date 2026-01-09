@@ -122,9 +122,9 @@ export default function TasksPage() {
             className="w-10 h-10 flex items-center justify-center bg-[#B9FF66] rounded-xl text-[#191A23]">
             <Menu size={20} />
           </button>
-          <h1 className="text-xl font-bold text-[#191A23]" style={{ fontFamily: 'Space Grotesk, sans-serif' }}>
+          <h2 className="text-xl font-bold text-[#191A23]" style={{ fontFamily: 'Space Grotesk, sans-serif' }}>
             Tasks
-          </h1>
+          </h2>
           <div className="w-10"></div>
         </div>
 
@@ -132,9 +132,9 @@ export default function TasksPage() {
         <div className="p-6 max-w-7xl mx-auto">
           {/* Page Header */}
           <div className="mb-6">
-            <h1 className="text-4xl font-bold text-[#191A23] mb-2" style={{ fontFamily: 'Space Grotesk, sans-serif' }}>
+            <h2 className="text-4xl font-bold text-[#191A23] mb-2" style={{ fontFamily: 'Space Grotesk, sans-serif' }}>
               Tasks
-            </h1>
+            </h2>
             <p className="text-[#191A23] opacity-70 text-lg" style={{ fontFamily: 'Roboto, sans-serif' }}>
               Manage all your tasks
             </p>

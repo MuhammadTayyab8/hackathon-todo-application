@@ -54,7 +54,7 @@ export function Navbar() {
           </div>
 
           <div className="hidden lg:flex lg:flex-1 lg:justify-end lg:gap-x-4 lg:items-center">
-            {mounted && (
+            {/* {mounted && (
               <button
                 type="button"
                 className="-m-2.5 inline-flex items-center justify-center rounded-lg p-2.5 text-secondary hover:bg-secondary/5 relative"
@@ -67,7 +67,7 @@ export function Navbar() {
                   <Moon className="h-5 w-5" />
                 )}
               </button>
-            )}
+            )} */}
             <Button variant="ghost" size="sm">
               Log in
             </Button>
@@ -97,7 +97,7 @@ export function Navbar() {
                   ))}
                 </div>
                 <div className="py-6 space-y-2">
-                  {mounted && (
+                  {/* {mounted && (
                     <div className="flex items-center justify-between mb-4">
                       <span className="text-sm font-medium text-secondary">Theme</span>
                       <button
@@ -113,7 +113,7 @@ export function Navbar() {
                         )}
                       </button>
                     </div>
-                  )}
+                  )} */}
                   <Button variant="secondary" className="w-full justify-start">
                     Log in
                   </Button>

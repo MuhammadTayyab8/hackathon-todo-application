@@ -49,9 +49,9 @@ export function Sidebar({ isCollapsed, onToggle, isMobileOpen, onMobileClose }: 
       {/* Logo/App Name */}
       <div className="p-6 border-b border-[#191A23] border-opacity-10">
         {!isCollapsed ? (
-          <h1 className="text-xl font-bold text-[#191A23]" style={{ fontFamily: 'Space Grotesk, sans-serif' }}>
+          <h3 className="text-sm font-bold text-[#191A23]" style={{ fontFamily: 'Space Grotesk, sans-serif' }}>
             Todo App
-          </h1>
+          </h3>
         ) : (
           <div className="w-8 h-8 bg-[#B9FF66] rounded-lg flex items-center justify-center">
             <span className="text-[#191A23] font-bold" style={{ fontFamily: 'Space Grotesk, sans-serif' }}>T</span>
@@ -69,14 +69,14 @@ export function Sidebar({ isCollapsed, onToggle, isMobileOpen, onMobileClose }: 
                  fontWeight: 700,
                  color: '#191A23'
                }}>
-            {user?.name?.charAt(0).toUpperCase() || 'U'}
+            {user?.username?.charAt(0).toUpperCase() || 'U'}
           </div>
           {!isCollapsed && (
             <div className="overflow-hidden" style={{ animation: 'slideIn 0.3s ease-out' }}>
-              <h3 className="text-[#191A23] font-semibold truncate text-sm"
+              <h4 className="text-[#191A23] font-semibold truncate text-sm"
                   style={{ fontFamily: 'Space Grotesk, sans-serif' }}>
-                {user?.name || 'Loading...'}
-              </h3>
+                {user?.username || 'Loading...'}
+              </h4>
               <p className="text-[#191A23] opacity-70 text-xs truncate"
                  style={{ fontFamily: 'Roboto, sans-serif' }}>
                 {user?.email || ''}

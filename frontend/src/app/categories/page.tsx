@@ -134,9 +134,9 @@ export default function CategoriesPage() {
             className="w-10 h-10 flex items-center justify-center bg-[#B9FF66] rounded-xl text-[#191A23]">
             <Menu size={20} />
           </button>
-          <h1 className="text-xl font-bold text-[#191A23]" style={{ fontFamily: 'Space Grotesk, sans-serif' }}>
+          <h2 className="text-xl font-bold text-[#191A23]" style={{ fontFamily: 'Space Grotesk, sans-serif' }}>
             Categories
-          </h1>
+          </h2>
           <div className="w-10"></div>
         </div>
 

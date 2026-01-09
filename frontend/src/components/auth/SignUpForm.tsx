@@ -78,7 +78,7 @@ export default function SignUpForm() {
               <ShieldCheck className="w-8 h-8 text-secondary" />
             </div>
             <h1 className="text-3xl font-heading text-white text-center">Create Account</h1>
-            <p className="text-foreground-light mt-2 text-center text-sm">Join the next generation of productivity</p>
+            <p className="text-gray-200 mt-2 text-center text-sm">Join the next generation of productivity</p>
           </div>
 
           <form onSubmit={handleSubmit} className="space-y-5">
@@ -173,7 +173,7 @@ export default function SignUpForm() {
               type="submit"
               disabled={isLoading || !isPasswordValid}
               className={`w-full h-12 rounded-xl text-base font-bold transition-all duration-300 stagger-5 shadow-lg
-                ${isPasswordValid ? 'bg-primary text-secondary hover:shadow-[0_0_25px_rgba(185,255,102,0.4)]' : 'bg-white/10 text-white/30'}`}
+                ${isPasswordValid ? 'hover:shadow-[0_0_25px_rgba(185,255,102,0.4)]' : 'bg-white/10 text-white/80'}`}
             >
               {isLoading ? (
                 <Loader2 className="w-5 h-5 animate-spin" />

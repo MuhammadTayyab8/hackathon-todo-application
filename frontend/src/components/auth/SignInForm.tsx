@@ -61,7 +61,7 @@ export default function SignInForm() {
               <KeyRound className="w-8 h-8 text-secondary" />
             </div>
             <h1 className="text-3xl font-heading text-white text-center">Welcome Back</h1>
-            <p className="text-foreground-light mt-2 text-center text-sm">Sign in to access your dashboard</p>
+            <p className="text-gray-200 mt-2 text-center text-sm">Sign in to access your dashboard</p>
           </div>
 
           <form onSubmit={handleSubmit} className="space-y-6">
@@ -120,7 +120,7 @@ export default function SignInForm() {
             <Button
               type="submit"
               disabled={isLoading}
-              className="w-full h-12 rounded-xl text-base font-bold bg-primary text-secondary hover:shadow-[0_0_25px_rgba(185,255,102,0.4)] transition-all duration-300 stagger-3 shadow-lg"
+              className="w-full h-12 rounded-xl text-base font-bold hover:shadow-[0_0_25px_rgba(185,255,102,0.4)] transition-all duration-300 stagger-3 shadow-lg"
             >
               {isLoading ? (
                 <Loader2 className="w-5 h-5 animate-spin" />

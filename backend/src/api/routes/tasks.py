@@ -4,9 +4,11 @@ from datetime import datetime, timezone
 from fastapi import APIRouter, Depends, HTTPException, Request, status
 from sqlmodel.ext.asyncio.session import AsyncSession
 from sqlmodel import select
+from sqlalchemy.orm import selectinload
 
 from src.db import get_session
 from src.models.task import Task, TaskCreate, TaskRead, TaskUpdate
+from src.models.category import Category
 
 router = APIRouter()
 
@@ -34,9 +36,23 @@ async def list_tasks(
     session: AsyncSession = Depends(get_session)
 ):
     await verify_user_access(user_id, request)
-    statement = select(Task).where(Task.user_id == user_id)
+
+    # Use SQL join to get category name
+    statement = (
+        select(Task, Category.name)
+        .outerjoin(Category, Task.category_id == Category.id)
+        .where(Task.user_id == user_id)
+    )
     result = await session.exec(statement)
-    return result.all()
+
+    # Build TaskRead objects with category_name
+    tasks = []
+    for task, category_name in result.all():
+        task_dict = task.model_dump()
+        task_dict['category_name'] = category_name
+        tasks.append(TaskRead(**task_dict))
+
+    return tasks
 
 @router.post("/{user_id}/tasks", response_model=TaskRead, status_code=status.HTTP_201_CREATED)
 async def create_task(
@@ -60,12 +76,24 @@ async def get_task(
     session: AsyncSession = Depends(get_session)
 ):
     await verify_user_access(user_id, request)
-    statement = select(Task).where(Task.user_id == user_id, Task.id == task_id)
+
+    # Use SQL join to get category name
+    statement = (
+        select(Task, Category.name)
+        .outerjoin(Category, Task.category_id == Category.id)
+        .where(Task.user_id == user_id, Task.id == task_id)
+    )
     result = await session.exec(statement)
-    task = result.first()
-    if not task:
+    row = result.first()
+
+    if not row:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Task not found")
-    return task
+
+    task, category_name = row
+    task_dict = task.model_dump()
+    task_dict['category_name'] = category_name
+
+    return TaskRead(**task_dict)
 
 @router.put("/{user_id}/tasks/{task_id}", response_model=TaskRead)
 async def update_task(
@@ -86,10 +114,24 @@ async def update_task(
     for key, value in task_data.items():
         setattr(task, key, value)
 
+    task.updated_at = datetime.now(timezone.utc).replace(tzinfo=None)
+
     session.add(task)
     await session.commit()
     await session.refresh(task)
-    return task
+
+    # Get category name if category_id is set
+    category_name = None
+    if task.category_id:
+        cat_statement = select(Category).where(Category.id == task.category_id)
+        cat_result = await session.exec(cat_statement)
+        category = cat_result.first()
+        if category:
+            category_name = category.name
+
+    task_dict = task.model_dump()
+    task_dict['category_name'] = category_name
+    return TaskRead(**task_dict)
 
 @router.delete("/{user_id}/tasks/{task_id}", status_code=status.HTTP_204_NO_CONTENT)
 async def delete_task(

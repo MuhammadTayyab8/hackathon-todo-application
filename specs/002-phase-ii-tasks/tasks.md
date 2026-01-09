@@ -26,7 +26,7 @@ description: "Implementation tasks for Phase II Task Updates & Category Integrat
 **Purpose**: Project initialization and basic structure
 
 - [x] T001 Install alembic and update requirements in backend/requirements.txt
-- [ ] T002 Initialize Alembic configuration in backend/alembic.ini and backend/src/migrations/env.py
+- [x] T002 Initialize Alembic configuration in backend/alembic.ini and backend/src/migrations/env.py
 
 ---
 
@@ -36,10 +36,10 @@ description: "Implementation tasks for Phase II Task Updates & Category Integrat
 
 **⚠️ CRITICAL**: No user story work can begin until this phase is complete
 
-- [ ] T003 Create Category model in backend/src/models/category.py
-- [ ] T004 Update Task model with new fields and FK in backend/src/models/task.py
-- [ ] T005 Create migration script for new schema in backend/src/migrations/versions/
-- [ ] T006 Apply migrations to update database schema (alembic upgrade head)
+- [x] T003 Create Category model in backend/src/models/category.py
+- [x] T004 Update Task model with new fields and FK in backend/src/models/task.py
+- [x] T005 Create migration script for new schema in backend/src/migrations/versions/
+- [x] T006 Apply migrations to update database schema (alembic upgrade head)
 
 **Checkpoint**: Foundation ready - user story implementation can now begin in parallel
 
@@ -53,11 +53,11 @@ description: "Implementation tasks for Phase II Task Updates & Category Integrat
 
 ### Implementation for User Story 1
 
-- [ ] T007 [US1] Create POST /api/categories endpoint (helper) or seed script in backend/src/api/routes/categories.py
-- [ ] T008 [US1] Update TaskCreate and TaskRead schemas in backend/src/models/task.py
-- [ ] T009 [US1] Update POST /api/{user_id}/tasks endpoint in backend/src/api/routes/tasks.py
-- [ ] T010 [P] [US1] Create TaskForm component in frontend/src/components/tasks/TaskForm.tsx
-- [ ] T011 [P] [US1] Update API client with createTask function in frontend/src/lib/api.ts
+- [x] T007 [US1] Create POST /api/categories endpoint (helper) or seed script in backend/src/api/routes/categories.py
+- [x] T008 [US1] Update TaskCreate and TaskRead schemas in backend/src/models/task.py
+- [x] T009 [US1] Update POST /api/{user_id}/tasks endpoint in backend/src/api/routes/tasks.py
+- [x] T010 [P] [US1] Create TaskForm component in frontend/src/components/tasks/TaskForm.tsx
+- [x] T011 [P] [US1] Update API client with createTask function in frontend/src/lib/api.ts
 
 **Checkpoint**: At this point, User Story 1 should be fully functional and testable independently
 
@@ -71,11 +71,11 @@ description: "Implementation tasks for Phase II Task Updates & Category Integrat
 
 ### Implementation for User Story 2
 
-- [ ] T012 [US2] Update TaskRead schema to include category_name in backend/src/models/task.py
-- [ ] T013 [US2] Update GET /api/{user_id}/tasks to use SQL Join in backend/src/api/routes/tasks.py
-- [ ] T014 [US2] Update GET /api/{user_id}/tasks/{id} to use SQL Join in backend/src/api/routes/tasks.py
-- [ ] T015 [P] [US2] Create TaskItem component in frontend/src/components/tasks/TaskItem.tsx
-- [ ] T016 [P] [US2] Create TaskList component in frontend/src/components/tasks/TaskList.tsx
+- [x] T012 [US2] Update TaskRead schema to include category_name in backend/src/models/task.py
+- [x] T013 [US2] Update GET /api/{user_id}/tasks to use SQL Join in backend/src/api/routes/tasks.py
+- [x] T014 [US2] Update GET /api/{user_id}/tasks/{id} to use SQL Join in backend/src/api/routes/tasks.py
+- [x] T015 [P] [US2] Create TaskItem component in frontend/src/components/tasks/TaskItem.tsx
+- [x] T016 [P] [US2] Create TaskList component in frontend/src/components/tasks/TaskList.tsx
 
 **Checkpoint**: At this point, User Stories 1 AND 2 should both work independently
 
@@ -89,10 +89,10 @@ description: "Implementation tasks for Phase II Task Updates & Category Integrat
 
 ### Implementation for User Story 3
 
-- [ ] T017 [US3] Update TaskUpdate schema in backend/src/models/task.py
-- [ ] T018 [US3] Update PUT /api/{user_id}/tasks/{id} endpoint in backend/src/api/routes/tasks.py
-- [ ] T019 [P] [US3] Add Edit functionality to TaskForm in frontend/src/components/tasks/TaskForm.tsx
-- [ ] T020 [P] [US3] Update API client with updateTask function in frontend/src/lib/api.ts
+- [x] T017 [US3] Update TaskUpdate schema in backend/src/models/task.py
+- [x] T018 [US3] Update PUT /api/{user_id}/tasks/{id} endpoint in backend/src/api/routes/tasks.py
+- [x] T019 [P] [US3] Add Edit functionality to TaskForm in frontend/src/components/tasks/TaskForm.tsx
+- [x] T020 [P] [US3] Update API client with updateTask function in frontend/src/lib/api.ts
 
 **Checkpoint**: All user stories should now be independently functional
 
@@ -102,8 +102,8 @@ description: "Implementation tasks for Phase II Task Updates & Category Integrat
 
 **Purpose**: Improvements that affect multiple user stories
 
-- [ ] T021 Integrate TaskList and TaskForm into Main Page in frontend/src/app/page.tsx (or create dashboard page)
-- [ ] T022 Verify End-to-End flow (Create -> List -> Update) manually
+- [x] T021 Integrate TaskList and TaskForm into Main Page in frontend/src/app/dashboard/page.tsx (created dashboard page)
+- [x] T022 Verify End-to-End flow (Create -> List -> Update) manually
 
 ---
 

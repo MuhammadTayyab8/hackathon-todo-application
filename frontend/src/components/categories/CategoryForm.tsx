@@ -2,6 +2,7 @@
 
 import { useState } from 'react'
 import { api, type CategoryCreate } from '@/lib/api'
+import { AlertCircle, Loader2, Plus } from 'lucide-react'
 
 interface CategoryFormProps {
   userId: string | null
@@ -44,9 +45,10 @@ export function CategoryForm({ userId, onSuccess, onCancel }: CategoryFormProps)
     <form onSubmit={handleSubmit} className="space-y-4">
       {error && (
         <div
-          className="bg-red-100 border border-red-400 text-red-700 p-3 rounded-xl"
+          className="bg-red-100 border border-red-400 text-red-700 p-3 rounded-xl flex items-center gap-2"
           style={{ fontFamily: 'Roboto, sans-serif', fontSize: '14px' }}>
-          ⚠️ {error}
+          <AlertCircle size={16} />
+          {error}
         </div>
       )}
 
@@ -75,9 +77,19 @@ export function CategoryForm({ userId, onSuccess, onCancel }: CategoryFormProps)
         <button
           type="submit"
           disabled={loading}
-          className="flex-1 bg-[#191A23] text-white py-3 px-6 rounded-xl font-medium hover:bg-opacity-90 disabled:bg-opacity-50 disabled:cursor-not-allowed transition-all duration-200 hover:scale-105 active:scale-95"
+          className="flex-1 bg-[#191A23] text-white py-3 px-6 rounded-xl font-medium hover:bg-opacity-90 disabled:bg-opacity-50 disabled:cursor-not-allowed transition-all duration-200 hover:scale-105 active:scale-95 flex items-center justify-center gap-2"
           style={{ fontFamily: 'Roboto, sans-serif' }}>
-          {loading ? '⏳ Creating...' : '➕ Create Category'}
+          {loading ? (
+            <>
+              <Loader2 size={16} className="animate-spin" />
+              Creating...
+            </>
+          ) : (
+            <>
+              <Plus size={16} />
+              Create Category
+            </>
+          )}
         </button>
         {onCancel && (
           <button

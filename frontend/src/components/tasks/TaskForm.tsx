@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react'
 import { api, type Task, type Category, type TaskCreate, type TaskUpdate } from '@/lib/api'
+import { AlertCircle, Loader2, Check, Plus } from 'lucide-react'
 
 interface TaskFormProps {
   userId: string | null
@@ -77,20 +78,21 @@ export function TaskForm({ userId, task, onSuccess, onCancel }: TaskFormProps) {
   return (
     <form
       onSubmit={handleSubmit}
-      className="bg-[#F3F3F3] p-6 rounded-xl border border-[#191A23]/10 shadow-sm"
+      className=""
       style={{ animation: 'slideIn 0.3s ease-out' }}>
 
-      <h2
+      {/* <h2
         className="text-2xl font-bold text-[#191A23] mb-6"
         style={{ fontFamily: 'Space Grotesk, sans-serif' }}>
         {task ? '✏️ Edit Task' : '➕ Create New Task'}
-      </h2>
+      </h2> */}
 
       {error && (
         <div
-          className="bg-red-100 border border-red-400 text-red-700 p-3 rounded-xl mb-4"
+          className="bg-red-100 border border-red-400 text-red-700 p-3 rounded-xl mb-4 flex items-center gap-2"
           style={{ fontFamily: 'Roboto, sans-serif', fontSize: '14px' }}>
-          ⚠️ {error}
+          <AlertCircle size={16} />
+          {error}
         </div>
       )}
 
@@ -182,9 +184,24 @@ export function TaskForm({ userId, task, onSuccess, onCancel }: TaskFormProps) {
         <button
           type="submit"
           disabled={loading}
-          className="flex-1 bg-[#191A23] text-white py-3 px-6 rounded-xl font-medium hover:bg-[#191A23]/90 disabled:bg-[#191A23]/50 disabled:cursor-not-allowed transition-all duration-200 hover:scale-105 active:scale-95"
+          className="flex-1 bg-[#191A23] text-white py-3 px-6 rounded-xl font-medium hover:bg-[#191A23]/90 disabled:bg-[#191A23]/50 disabled:cursor-not-allowed transition-all duration-200 hover:scale-105 active:scale-95 flex items-center justify-center gap-2"
           style={{ fontFamily: 'Roboto, sans-serif' }}>
-          {loading ? '⏳ Saving...' : task ? '✓ Update Task' : '➕ Create Task'}
+          {loading ? (
+            <>
+              <Loader2 size={16} className="animate-spin" />
+              Saving...
+            </>
+          ) : task ? (
+            <>
+              <Check size={16} />
+              Update Task
+            </>
+          ) : (
+            <>
+              <Plus size={16} />
+              Create Task
+            </>
+          )}
         </button>
         {onCancel && (
           <button

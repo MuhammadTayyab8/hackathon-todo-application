@@ -116,11 +116,11 @@ export default function DashboardPage() {
         <div className="p-6 max-w-7xl mx-auto">
           {/* Welcome Header */}
           <div className="mb-6">
-            <h1 className="text-4xl font-bold text-[#191A23] mb-2" style={{ fontFamily: 'Space Grotesk, sans-serif' }}>
-              Welcome back, {user.name}! 👋
-            </h1>
+            <h2 className="text-4xl font-bold text-[#191A23] mb-2" style={{ fontFamily: 'Space Grotesk, sans-serif' }}>
+              Welcome back!
+            </h2>
             <p className="text-[#191A23] opacity-70 text-lg" style={{ fontFamily: 'Roboto, sans-serif' }}>
-              Here's your productivity overview
+              {user.username}, Here's your productivity overview
             </p>
           </div>
 

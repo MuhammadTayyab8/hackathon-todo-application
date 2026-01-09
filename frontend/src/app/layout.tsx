@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import "./globals.css";
-import { Navbar } from "@/components/layout/Navbar";
+import { ConditionalNavbar } from "@/components/layout/ConditionalNavbar";
 import { Space_Grotesk, Roboto, Merriweather } from "next/font/google";
 import { ThemeProvider } from "@/components/providers/ThemeProvider";
 
@@ -39,7 +39,7 @@ export default function RootLayout({
     <html lang="en" className={`${spaceGrotesk.variable} ${roboto.variable} ${merriweather.variable}`}>
       <body className="font-body antialiased">
         <ThemeProvider>
-          <Navbar />
+          <ConditionalNavbar />
           {children}
         </ThemeProvider>
       </body>

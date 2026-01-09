@@ -2,83 +2,82 @@
 
 import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
-import { api, type Task, type User } from '@/lib/api'
+import { api, type Task, type User, type Category } from '@/lib/api'
 import { Sidebar } from '@/components/dashboard/Sidebar'
-import { DashboardStats } from '@/components/dashboard/DashboardStats'
-import { TaskFilters } from '@/components/dashboard/TaskFilters'
-import { TaskForm } from '@/components/tasks/TaskForm'
-import { TaskList } from '@/components/tasks/TaskList'
+import { KPICard } from '@/components/dashboard/KPICard'
+import { CategoryCard } from '@/components/categories/CategoryCard'
+import { TaskItem } from '@/components/tasks/TaskItem'
+import { CheckSquare, Clock, CheckCircle2, FolderOpen, Menu } from 'lucide-react'
 
 export default function DashboardPage() {
   const router = useRouter()
   const [user, setUser] = useState<User | null>(null)
   const [tasks, setTasks] = useState<Task[]>([])
-  const [editingTask, setEditingTask] = useState<Task | undefined>(undefined)
-  const [refreshTrigger, setRefreshTrigger] = useState(0)
-  const [showForm, setShowForm] = useState(false)
+  const [categories, setCategories] = useState<Category[]>([])
+  const [loading, setLoading] = useState(true)
   const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false)
   const [isMobileSidebarOpen, setIsMobileSidebarOpen] = useState(false)
-  const [activeFilter, setActiveFilter] = useState<'all' | 'active' | 'completed'>('all')
-  const [searchQuery, setSearchQuery] = useState('')
 
   useEffect(() => {
     const token = localStorage.getItem('token')
+    console.log(token, "token")
     if (!token) {
       router.push('/signin')
       return
     }
 
-    fetchUser()
-    fetchTasks()
+    fetchData()
   }, [router])
 
-  useEffect(() => {
-    if (user) {
-      fetchTasks()
-    }
-  }, [user, refreshTrigger])
-
-  const fetchUser = async () => {
+  const fetchData = async () => {
     try {
+      setLoading(true)
       const userData = await api.getCurrentUser()
-      console.log(userData, "userData")
       setUser(userData)
-    } catch (error) {
-      console.error('Failed to fetch user:', error)
-      router.push('/signin')
-    }
-  }
 
-  const fetchTasks = async () => {
-    if (!user?.id) return
-    try {
-      const tasksData = await api.getTasks(user.id)
+      const [tasksData, categoriesData] = await Promise.all([
+        api.getTasks(userData.id),
+        api.getCategories(userData.id)
+      ])
+
+      console.log({tasksData, categoriesData})
+
       setTasks(tasksData)
+      setCategories(categoriesData)
     } catch (error) {
-      console.error('Failed to fetch tasks:', error)
+      console.error('Failed to fetch data:', error)
+      router.push('/signin')
+    } finally {
+      setLoading(false)
     }
   }
 
-  const handleSuccess = () => {
-    setRefreshTrigger(prev => prev + 1)
-    setEditingTask(undefined)
-    setShowForm(false)
+  const handleTaskUpdate = () => {
+    if (user) {
+      api.getTasks(user.id).then(setTasks)
+    }
   }
 
-  const handleEdit = (task: Task) => {
-    setEditingTask(task)
-    setShowForm(true)
-  }
-
-  const handleCancel = () => {
-    setEditingTask(undefined)
-    setShowForm(false)
+  const handleTaskEdit = (task: Task) => {
+    router.push(`/tasks?edit=${task.id}`)
   }
 
   // Calculate stats
   const totalTasks = tasks.length
-  const completedTasks = tasks.filter(t => t.completed).length
   const pendingTasks = tasks.filter(t => !t.completed).length
+  const completedTasks = tasks.filter(t => t.completed).length
+  const totalCategories = categories.length
+
+  // Get recent tasks (latest 5)
+  const recentTasks = tasks.slice(0, 5)
+
+  // Calculate task count per category
+  const taskCountByCategory = tasks.reduce((acc, task) => {
+    if (task.category_id) {
+      acc[task.category_id] = (acc[task.category_id] || 0) + 1
+    }
+    return acc
+  }, {} as Record<number, number>)
 
   if (!user) {
     return (
@@ -100,17 +99,15 @@ export default function DashboardPage() {
 
       {/* Main Content */}
       <main className="flex-1 overflow-auto">
-        {/* Mobile Header with Hamburger */}
-        <div className="md:hidden sticky top-0 z-30 bg-[#F3F3F3] border-b border-[#191A23]/10 px-4 py-3 flex items-center justify-between">
+        {/* Mobile Header */}
+        <div className="md:hidden sticky top-0 z-30 bg-[#F3F3F3] border-b border-[#191A23] border-opacity-10 px-4 py-3 flex items-center justify-between">
           <button
             onClick={() => setIsMobileSidebarOpen(true)}
-            className="w-10 h-10 flex items-center justify-center bg-[#B9FF66] rounded-xl text-[#191A23] text-xl">
-            ☰
+            className="w-10 h-10 flex items-center justify-center bg-[#B9FF66] rounded-xl text-[#191A23]">
+            <Menu size={20} />
           </button>
-          <h1
-            className="text-xl font-bold text-[#191A23]"
-            style={{ fontFamily: 'Space Grotesk, sans-serif' }}>
-            Task Dashboard
+          <h1 className="text-xl font-bold text-[#191A23]" style={{ fontFamily: 'Space Grotesk, sans-serif' }}>
+            Dashboard
           </h1>
           <div className="w-10"></div>
         </div>
@@ -118,104 +115,130 @@ export default function DashboardPage() {
         {/* Content Container */}
         <div className="p-6 max-w-7xl mx-auto">
           {/* Welcome Header */}
-          <div className="mb-6" style={{ animation: 'fadeIn 0.5s ease-out' }}>
-            <h1
-              className="text-4xl font-bold text-[#191A23] mb-2"
-              style={{ fontFamily: 'Space Grotesk, sans-serif' }}>
+          <div className="mb-6">
+            <h1 className="text-4xl font-bold text-[#191A23] mb-2" style={{ fontFamily: 'Space Grotesk, sans-serif' }}>
               Welcome back, {user.name}! 👋
             </h1>
-            <p
-              className="text-[#191A23]/70 text-lg"
-              style={{ fontFamily: 'Roboto, sans-serif' }}>
-              Here's what you need to focus on today
+            <p className="text-[#191A23] opacity-70 text-lg" style={{ fontFamily: 'Roboto, sans-serif' }}>
+              Here's your productivity overview
             </p>
           </div>
 
-          {/* Dashboard Stats */}
-          <div className="mb-6">
-            <DashboardStats
-              totalTasks={totalTasks}
-              completedTasks={completedTasks}
-              pendingTasks={pendingTasks}
-            />
+          {/* KPI Cards */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
+            <KPICard icon={CheckSquare} value={totalTasks} label="All Tasks" isLoading={loading} />
+            <KPICard icon={Clock} value={pendingTasks} label="Pending" isLoading={loading} />
+            <KPICard icon={CheckCircle2} value={completedTasks} label="Complete" isLoading={loading} />
+            <KPICard icon={FolderOpen} value={totalCategories} label="Categories" isLoading={loading} />
           </div>
 
-          {/* Create Task Button (Mobile) */}
-          {!showForm && (
-            <div className="mb-6 md:hidden">
+          {/* Recent Tasks Section */}
+          <div className="mb-8">
+            <div className="flex items-center justify-between mb-4">
+              <div>
+                <h2 className="text-2xl font-bold text-[#191A23]" style={{ fontFamily: 'Space Grotesk, sans-serif' }}>
+                  Recent Tasks
+                </h2>
+                <p className="text-sm text-[#191A23] opacity-70" style={{ fontFamily: 'Roboto, sans-serif' }}>
+                  Latest 5 tasks
+                </p>
+              </div>
               <button
-                onClick={() => setShowForm(true)}
-                className="w-full bg-[#191A23] text-white py-4 px-6 rounded-xl font-medium flex items-center justify-center gap-2 hover:bg-[#191A23]/90 transition-all duration-200"
+                onClick={() => router.push('/tasks')}
+                className="text-sm font-medium text-[#191A23] hover:underline"
                 style={{ fontFamily: 'Roboto, sans-serif' }}>
-                <span className="text-xl">➕</span>
-                <span>Create New Task</span>
+                View all →
               </button>
             </div>
-          )}
 
-          {/* Main Grid Layout */}
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-            {/* Left Column - Task Form */}
-            <div className="lg:col-span-1">
-              {!showForm ? (
+            {loading ? (
+              <div className="space-y-4">
+                {[1, 2, 3].map(i => (
+                  <div key={i} className="bg-[#F3F3F3] rounded-xl p-4 h-24 animate-pulse" />
+                ))}
+              </div>
+            ) : recentTasks.length === 0 ? (
+              <div className="bg-[#F3F3F3] rounded-xl p-12 text-center border border-[#191A23] border-opacity-10">
+                <CheckSquare size={48} className="text-[#191A23] opacity-30 mx-auto mb-4" />
+                <h3 className="text-xl font-bold text-[#191A23] mb-2" style={{ fontFamily: 'Space Grotesk, sans-serif' }}>
+                  No tasks yet
+                </h3>
+                <p className="text-[#191A23] opacity-70 mb-4" style={{ fontFamily: 'Roboto, sans-serif' }}>
+                  Create your first task to get started
+                </p>
                 <button
-                  onClick={() => setShowForm(true)}
-                  className="hidden md:flex w-full bg-[#191A23] text-white py-4 px-6 rounded-xl font-medium items-center justify-center gap-2 hover:bg-[#191A23]/90 transition-all duration-200 hover:scale-105"
+                  onClick={() => router.push('/tasks')}
+                  className="bg-[#191A23] text-white px-6 py-3 rounded-xl hover:bg-opacity-90 transition-all"
                   style={{ fontFamily: 'Roboto, sans-serif' }}>
-                  <span className="text-xl">➕</span>
-                  <span>Create New Task</span>
+                  Create Task
                 </button>
-              ) : (
-                <TaskForm
-                  userId={user.id}
-                  task={editingTask}
-                  onSuccess={handleSuccess}
-                  onCancel={handleCancel}
-                />
-              )}
+              </div>
+            ) : (
+              <div className="space-y-3">
+                {recentTasks.map(task => (
+                  <TaskItem
+                    key={task.id}
+                    task={task}
+                    userId={user.id}
+                    onUpdate={handleTaskUpdate}
+                    onEdit={handleTaskEdit}
+                  />
+                ))}
+              </div>
+            )}
+          </div>
+
+          {/* Categories Section */}
+          <div>
+            <div className="flex items-center justify-between mb-4">
+              <h2 className="text-2xl font-bold text-[#191A23]" style={{ fontFamily: 'Space Grotesk, sans-serif' }}>
+                Categories
+              </h2>
+              <button
+                onClick={() => router.push('/categories')}
+                className="text-sm font-medium text-[#191A23] hover:underline"
+                style={{ fontFamily: 'Roboto, sans-serif' }}>
+                View all →
+              </button>
             </div>
 
-            {/* Right Column - Task List */}
-            <div className="lg:col-span-2 space-y-6">
-              {/* Filters */}
-              <TaskFilters
-                activeFilter={activeFilter}
-                onFilterChange={setActiveFilter}
-                searchQuery={searchQuery}
-                onSearchChange={setSearchQuery}
-              />
-
-              {/* Task List */}
-              <TaskList
-                userId={user.id}
-                onEdit={handleEdit}
-                refreshTrigger={refreshTrigger}
-                filter={activeFilter}
-                searchQuery={searchQuery}
-              />
-            </div>
+            {loading ? (
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                {[1, 2, 3].map(i => (
+                  <div key={i} className="bg-[#B9FF66] rounded-xl p-6 h-40 animate-pulse" />
+                ))}
+              </div>
+            ) : categories.length === 0 ? (
+              <div className="bg-[#F3F3F3] rounded-xl p-12 text-center border border-[#191A23] border-opacity-10">
+                <FolderOpen size={48} className="text-[#191A23] opacity-30 mx-auto mb-4" />
+                <h3 className="text-xl font-bold text-[#191A23] mb-2" style={{ fontFamily: 'Space Grotesk, sans-serif' }}>
+                  No categories yet
+                </h3>
+                <p className="text-[#191A23] opacity-70 mb-4" style={{ fontFamily: 'Roboto, sans-serif' }}>
+                  Create categories to organize your tasks
+                </p>
+                <button
+                  onClick={() => router.push('/categories')}
+                  className="bg-[#191A23] text-white px-6 py-3 rounded-xl hover:bg-opacity-90 transition-all"
+                  style={{ fontFamily: 'Roboto, sans-serif' }}>
+                  Create Category
+                </button>
+              </div>
+            ) : (
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                {categories.map(category => (
+                  <CategoryCard
+                    key={category.id}
+                    category={category}
+                    taskCount={taskCountByCategory[category.id] || 0}
+                    onViewTasks={() => router.push(`/tasks?category=${category.id}`)}
+                  />
+                ))}
+              </div>
+            )}
           </div>
         </div>
       </main>
-
-      <style jsx global>{`
-        @import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Roboto:wght@400;500;700&display=swap');
-
-        @keyframes fadeIn {
-          from { opacity: 0; }
-          to { opacity: 1; }
-        }
-
-        * {
-          box-sizing: border-box;
-        }
-
-        body {
-          margin: 0;
-          padding: 0;
-          font-family: 'Roboto', sans-serif;
-        }
-      `}</style>
     </div>
   )
 }

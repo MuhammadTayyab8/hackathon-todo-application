@@ -22,6 +22,17 @@ if database_url:
     # Convert to asyncpg if needed
     if database_url.startswith("postgresql://"):
         database_url = database_url.replace("postgresql://", "postgresql+asyncpg://", 1)
+
+    # Remove incompatible SSL parameters for asyncpg
+    # asyncpg doesn't accept sslmode or channel_binding as URL parameters
+    if "sslmode=" in database_url:
+        # Remove sslmode and channel_binding from URL
+        import re
+        database_url = re.sub(r'[?&]sslmode=[^&]*', '', database_url)
+        database_url = re.sub(r'[?&]channel_binding=[^&]*', '', database_url)
+        # Clean up any trailing ? or &
+        database_url = re.sub(r'[?&]$', '', database_url)
+
     config.set_main_option("sqlalchemy.url", database_url)
 
 # Interpret the config file for Python logging.

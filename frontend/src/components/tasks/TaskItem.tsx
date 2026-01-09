@@ -1,6 +1,7 @@
 'use client'
 
 import { api, type Task } from '@/lib/api'
+import { Check, Tag, Calendar, Edit, Trash2 } from 'lucide-react'
 
 interface TaskItemProps {
   task: Task
@@ -61,7 +62,7 @@ export function TaskItem({ task, userId, onUpdate, onEdit }: TaskItemProps) {
               : 'border-[#191A23]/30 hover:border-[#B9FF66]'
           }`}>
           {task.completed && (
-            <span className="text-[#191A23] text-sm font-bold">✓</span>
+            <Check size={14} className="text-[#191A23] font-bold" />
           )}
         </button>
 
@@ -95,21 +96,23 @@ export function TaskItem({ task, userId, onUpdate, onEdit }: TaskItemProps) {
           <div className="flex flex-wrap gap-2 items-center">
             {task.category_name && (
               <span
-                className="inline-flex items-center px-3 py-1 rounded-lg bg-[#B9FF66] text-[#191A23] text-xs font-medium"
+                className="inline-flex items-center gap-1 px-3 py-1 rounded-lg bg-[#B9FF66] text-[#191A23] text-xs font-medium"
                 style={{ fontFamily: 'Roboto, sans-serif' }}>
-                🏷️ {task.category_name}
+                <Tag size={12} />
+                {task.category_name}
               </span>
             )}
 
             {task.due_date && (
               <span
-                className={`inline-flex items-center px-3 py-1 rounded-lg text-xs font-medium ${
+                className={`inline-flex items-center gap-1 px-3 py-1 rounded-lg text-xs font-medium ${
                   isOverdue
                     ? 'bg-red-100 text-red-800 border border-red-300'
                     : 'bg-white text-[#191A23]/70 border border-[#191A23]/10'
                 }`}
                 style={{ fontFamily: 'Roboto, sans-serif' }}>
-                📅 {formatDate(task.due_date)}
+                <Calendar size={12} />
+                {formatDate(task.due_date)}
                 {isOverdue && ' (Overdue)'}
               </span>
             )}
@@ -122,13 +125,13 @@ export function TaskItem({ task, userId, onUpdate, onEdit }: TaskItemProps) {
             onClick={() => onEdit(task)}
             className="w-8 h-8 flex items-center justify-center rounded-lg bg-white border border-[#191A23]/20 text-[#191A23] hover:bg-[#B9FF66] hover:border-[#B9FF66] transition-all duration-200"
             title="Edit task">
-            ✏️
+            <Edit size={16} />
           </button>
           <button
             onClick={handleDelete}
             className="w-8 h-8 flex items-center justify-center rounded-lg bg-white border border-[#191A23]/20 text-[#191A23] hover:bg-red-100 hover:border-red-300 hover:text-red-600 transition-all duration-200"
             title="Delete task">
-            🗑️
+            <Trash2 size={16} />
           </button>
         </div>
       </div>

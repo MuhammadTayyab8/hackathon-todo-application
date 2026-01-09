@@ -8,6 +8,7 @@
 - **Fields**:
   - `id`: Int, Primary Key, Auto-increment
   - `name`: String, Unique, Required
+  - `user_id`: Int, Required Foreign Key to `user.id`
 
 ### Task (Updated)
 - **Table**: `tasks`

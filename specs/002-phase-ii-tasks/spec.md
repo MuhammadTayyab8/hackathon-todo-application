@@ -64,7 +64,7 @@ As a user, I want to update the title, due date, or category of a task so that I
 
 ### Functional Requirements
 
-- **FR-001**: The System MUST persist a **Category** entity with `id` (int, PK) and `name` (string).
+- **FR-001**: The System MUST persist a **Category** entity with `id` (int, PK), `name` (string) and `user_id`.
 - **FR-002**: The **Task** entity MUST include `title` (string, required), `description` (string, optional), `due_date` (datetime, optional), and `category_id` (int, FK).
 - **FR-003**: The **Task** entity MUST retain existing fields: `id`, `user_id`, `content`, `completed`, `created_at`, `updated_at`.
 - **FR-004**: The `POST /api/{user_id}/tasks` endpoint MUST accept `title`, `description`, `due_date`, and `category_id` in the request body.
@@ -78,6 +78,7 @@ As a user, I want to update the title, due date, or category of a task so that I
 - **Category**:
   - `id`: Integer, Primary Key
   - `name`: String, Unique (per project or global? Assumption: Global or seeded for now, as no "create category" requirement for users was explicitly detailed, but simple lookup table is implied).
+  - `user_id`: Integer
 - **Task**:
   - `id`, `user_id`, `created_at`, `updated_at`, `completed` (Existing)
   - `content` (Existing, kept as legacy or simple text)

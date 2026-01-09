@@ -135,6 +135,39 @@ Rules:
 
 ---
 
+### Dashboard-Specific Components (NEW: For Todo App UI)
+
+- Sidebar:
+  - Collapsible: Toggle button to collapse/expand (use icons for collapse state)
+  - Layout: Vertical stack
+  - Top: Logo (using Primary color accent, Space Grotesk font if text-based)
+  - Middle: Navigation links (Dashboard, Tasks, Projects, Calendar) – Use Secondary color text, hover with Primary highlight, Medium padding between links
+  - Bottom: Logout button (use Secondary Button style)
+  - Background: Tertiary
+  - Width: Fixed (e.g., 250px expanded, 80px collapsed)
+  - Border: Right border 1px solid Secondary for separation
+  - Radius: None on sidebar itself, but adjacent body has Medium radius for visual separation
+
+- Dashboard Body:
+  - Layout: Flex column
+  - Top Header: Welcome {name} (Space Grotesk heading, Secondary text) on left, Notification icon (bell icon in Primary color) on right
+  - Main Content: Input boxes/forms with Medium radius, Primary background for highlights, Large padding
+  - Separation: Apply Medium border radius to the entire body container to create a "curved" separation look from sidebar (e.g., border-top-left-radius and border-bottom-left-radius: 0 if adjacent to sidebar)
+  - Background: Neutral Background
+  - Padding: Large overall, Medium for internal elements
+  - Responsiveness: On mobile, sidebar collapses by default; body takes full width
+
+- Input Boxes:
+  - Background: Tertiary
+  - Border: 1px solid Secondary
+  - Radius: Medium
+  - Padding: Medium
+  - Focus: Primary color border
+  - Labels: Roboto font, above inputs with Small spacing
+
+---
+
+
 ## Aesthetic Direction
 
 - Modern

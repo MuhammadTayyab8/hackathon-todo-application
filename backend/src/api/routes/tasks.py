@@ -62,7 +62,13 @@ async def create_task(
     session: AsyncSession = Depends(get_session)
 ):
     await verify_user_access(user_id, request)
-    task = Task(**task_in.model_dump(), user_id=user_id)
+
+    # Strip timezone info from due_date if present (database uses TIMESTAMP WITHOUT TIME ZONE)
+    task_data = task_in.model_dump()
+    if task_data.get('due_date') and task_data['due_date'].tzinfo is not None:
+        task_data['due_date'] = task_data['due_date'].replace(tzinfo=None)
+
+    task = Task(**task_data, user_id=user_id)
     session.add(task)
     await session.commit()
     await session.refresh(task)
@@ -111,6 +117,12 @@ async def update_task(
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Task not found")
 
     task_data = task_update.dict(exclude_unset=True)
+
+    # Strip timezone info from due_date if present (database uses TIMESTAMP WITHOUT TIME ZONE)
+    if 'due_date' in task_data and task_data['due_date'] is not None:
+        if hasattr(task_data['due_date'], 'tzinfo') and task_data['due_date'].tzinfo is not None:
+            task_data['due_date'] = task_data['due_date'].replace(tzinfo=None)
+
     for key, value in task_data.items():
         setattr(task, key, value)
 

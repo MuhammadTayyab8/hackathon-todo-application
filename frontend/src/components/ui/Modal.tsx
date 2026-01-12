@@ -48,7 +48,7 @@ export function Modal({ isOpen, onClose, title, children }: ModalProps) {
       {/* Modal Card */}
       <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
         <div
-          className="bg-white rounded-xl w-full max-w-[500px] max-h-[80vh] overflow-y-auto shadow-2xl"
+          className="bg-white rounded-xl w-full max-w-[500px] max-h-[90vh] overflow-y-auto shadow-2xl"
           onClick={(e) => e.stopPropagation()}
           style={{
             animation: 'scaleIn 200ms ease-out',
@@ -56,7 +56,7 @@ export function Modal({ isOpen, onClose, title, children }: ModalProps) {
           }}>
 
           {/* Header */}
-          <div className="flex items-center justify-between p-6 border-b border-[#F3F3F3]">
+          <div className="flex items-center justify-between px-6 py-3 border-b border-[#F3F3F3]">
             <h2
               className="text-2xl font-bold text-[#191A23]"
               style={{ fontFamily: 'Space Grotesk, sans-serif' }}>

@@ -15,13 +15,24 @@ async def options_signup():
     return Response(status_code=200)
 
 @router.post("/signup", response_model=AuthResponse, status_code=status.HTTP_201_CREATED)
-async def signup(user_data: UserCreate, session: AsyncSession = Depends(get_session)):
+async def signup(user_data: UserCreate, response: Response, session: AsyncSession = Depends(get_session)):
     try:
         print("API CALL")
         user = await create_user(session, user_data)
         token = create_jwt_token(user)
         # Expiry is set to 7 days in auth_service.py
         expires_at = datetime.now(timezone.utc) + timedelta(days=7)
+
+        # Set HTTP cookie with security flags
+        response.set_cookie(
+            key="auth_token",
+            value=token,
+            max_age=604800,  # 7 days in seconds
+            httponly=True,  # Prevent JavaScript access (XSS protection)
+            secure=False,  # Set to True in production with HTTPS
+            samesite="lax",  # CSRF protection
+            path="/"  # Available to all routes
+        )
 
         return AuthResponse(
             user=user,
@@ -43,7 +54,7 @@ async def options_signin():
     return Response(status_code=200)
 
 @router.post("/signin", response_model=AuthResponse)
-async def signin(credentials: UserSignIn, session: AsyncSession = Depends(get_session)):
+async def signin(credentials: UserSignIn, response: Response, session: AsyncSession = Depends(get_session)):
     user = await authenticate_user(session, credentials.email, credentials.password)
     if not user:
         raise HTTPException(
@@ -55,22 +66,37 @@ async def signin(credentials: UserSignIn, session: AsyncSession = Depends(get_se
     # Expiry is set to 7 days in auth_service.py
     expires_at = datetime.now(timezone.utc) + timedelta(days=7)
 
+    # Set HTTP cookie with security flags
+    response.set_cookie(
+        key="auth_token",
+        value=token,
+        max_age=604800,  # 7 days in seconds
+        httponly=True,  # Prevent JavaScript access (XSS protection)
+        secure=False,  # Set to True in production with HTTPS
+        samesite="lax",  # CSRF protection
+        path="/"  # Available to all routes
+    )
+
     return AuthResponse(
         user=user,
         token=token,
         expires_at=expires_at
     )
 
-@router.post("/signout", dependencies=[Depends(security)])
-async def signout():
+@router.post("/signout")
+async def signout(response: Response):
     """
     Sign out endpoint.
-    JWT is stateless, so we just return success.
-    Frontend will clear the token.
+    Clear the auth_token cookie.
     """
+    response.delete_cookie(
+        key="auth_token",
+        path="/",
+        samesite="lax"
+    )
     return {"message": "Successfully signed out"}
 
-@router.get("/me", response_model=UserRead, dependencies=[Depends(security)])
+@router.get("/me", response_model=UserRead)
 async def get_me(request: Request, session: AsyncSession = Depends(get_session)):
     """
     Return current authenticated user info.

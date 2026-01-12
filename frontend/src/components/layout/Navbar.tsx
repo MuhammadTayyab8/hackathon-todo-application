@@ -2,20 +2,53 @@
 
 import * as React from "react"
 import Link from "next/link"
+import { useRouter } from "next/navigation"
 import { useTheme } from "next-themes"
 import { Container } from "@/components/ui/Container"
 import { Button } from "@/components/ui/Button"
 import { NAV_LINKS } from "@/lib/constants"
-import { Menu, X, Moon, Sun } from "lucide-react"
+import { Menu, X, Moon, Sun, LogOut } from "lucide-react"
+import { useAuth } from "@/hooks/useAuth"
 
 export function Navbar() {
   const [mobileMenuOpen, setMobileMenuOpen] = React.useState(false)
   const [mounted, setMounted] = React.useState(false)
   const { theme, setTheme } = useTheme()
+  const { user, isAuthenticated, isLoading } = useAuth()
+  const router = useRouter()
 
   React.useEffect(() => {
     setMounted(true)
   }, [])
+
+  const handleLogout = async () => {
+    try {
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/auth/signout`, {
+        method: 'POST',
+        credentials: 'include', // Important: Send cookies
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      })
+
+      if (response.ok) {
+        router.push('/')
+        router.refresh()
+      } else {
+        console.error("Logout failed")
+      }
+    } catch (error) {
+      console.error("Logout failed:", error)
+    }
+  }
+
+  // Navigation links for authenticated users
+  const authenticatedLinks = [
+    { name: 'Dashboard', href: '/dashboard' },
+    { name: 'Tasks', href: '/tasks' },
+    { name: 'Categories', href: '/categories' },
+    { name: 'Calendar', href: '/calendar' },
+  ]
 
   return (
     <header className="sticky top-0 z-50 w-full bg-tertiary/95 backdrop-blur supports-[backdrop-filter]:bg-tertiary/80">
@@ -42,38 +75,62 @@ export function Navbar() {
           </div>
 
           <div className="hidden lg:flex lg:gap-x-12">
-            {NAV_LINKS.map((link) => (
-              <Link
-                key={link.name}
-                href={link.href}
-                className="text-sm font-semibold leading-6 text-secondary hover:text-primary transition-colors font-body"
-              >
-                {link.name}
-              </Link>
-            ))}
+            {isAuthenticated ? (
+              authenticatedLinks.map((link) => (
+                <Link
+                  key={link.name}
+                  href={link.href}
+                  className="text-sm font-semibold leading-6 text-secondary hover:text-primary transition-colors font-body"
+                >
+                  {link.name}
+                </Link>
+              ))
+            ) : (
+              NAV_LINKS.map((link) => (
+                <Link
+                  key={link.name}
+                  href={link.href}
+                  className="text-sm font-semibold leading-6 text-secondary hover:text-primary transition-colors font-body"
+                >
+                  {link.name}
+                </Link>
+              ))
+            )}
           </div>
 
           <div className="hidden lg:flex lg:flex-1 lg:justify-end lg:gap-x-4 lg:items-center">
-            {/* {mounted && (
-              <button
-                type="button"
-                className="-m-2.5 inline-flex items-center justify-center rounded-lg p-2.5 text-secondary hover:bg-secondary/5 relative"
-                onClick={() => setTheme(theme === "dark" ? "light" : "dark")}
-                aria-label="Toggle theme"
-              >
-                {theme === "dark" ? (
-                  <Sun className="h-5 w-5" />
+            {!isLoading && (
+              <>
+                {isAuthenticated ? (
+                  <>
+                    <span className="text-sm font-medium text-secondary">
+                      {user?.name}
+                    </span>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={handleLogout}
+                    >
+                      <LogOut className="h-4 w-4 mr-2" />
+                      Logout
+                    </Button>
+                  </>
                 ) : (
-                  <Moon className="h-5 w-5" />
+                  <>
+                    <Link href="/signin">
+                      <Button variant="ghost" size="sm">
+                        Log in
+                      </Button>
+                    </Link>
+                    <Link href="/signup">
+                      <Button size="sm">
+                        Sign up
+                      </Button>
+                    </Link>
+                  </>
                 )}
-              </button>
-            )} */}
-            <Button variant="ghost" size="sm">
-              Log in
-            </Button>
-            <Button size="sm">
-              Sign up
-            </Button>
+              </>
+            )}
           </div>
         </nav>
       </Container>
@@ -85,41 +142,68 @@ export function Navbar() {
             <div className="flow-root">
               <div className="-my-6 divide-y divide-secondary/10">
                 <div className="space-y-2 py-6">
-                  {NAV_LINKS.map((link) => (
-                    <Link
-                      key={link.name}
-                      href={link.href}
-                      className="-mx-3 block rounded-lg px-3 py-2 text-base font-semibold leading-7 text-secondary hover:bg-secondary/5 font-heading"
-                      onClick={() => setMobileMenuOpen(false)}
-                    >
-                      {link.name}
-                    </Link>
-                  ))}
+                  {isAuthenticated ? (
+                    authenticatedLinks.map((link) => (
+                      <Link
+                        key={link.name}
+                        href={link.href}
+                        className="-mx-3 block rounded-lg px-3 py-2 text-base font-semibold leading-7 text-secondary hover:bg-secondary/5 font-heading"
+                        onClick={() => setMobileMenuOpen(false)}
+                      >
+                        {link.name}
+                      </Link>
+                    ))
+                  ) : (
+                    NAV_LINKS.map((link) => (
+                      <Link
+                        key={link.name}
+                        href={link.href}
+                        className="-mx-3 block rounded-lg px-3 py-2 text-base font-semibold leading-7 text-secondary hover:bg-secondary/5 font-heading"
+                        onClick={() => setMobileMenuOpen(false)}
+                      >
+                        {link.name}
+                      </Link>
+                    ))
+                  )}
                 </div>
                 <div className="py-6 space-y-2">
-                  {/* {mounted && (
-                    <div className="flex items-center justify-between mb-4">
-                      <span className="text-sm font-medium text-secondary">Theme</span>
-                      <button
-                        type="button"
-                        className="inline-flex items-center justify-center rounded-lg p-2.5 text-secondary hover:bg-secondary/5 relative"
-                        onClick={() => setTheme(theme === "dark" ? "light" : "dark")}
-                        aria-label="Toggle theme"
-                      >
-                        {theme === "dark" ? (
-                          <Sun className="h-5 w-5" />
-                        ) : (
-                          <Moon className="h-5 w-5" />
-                        )}
-                      </button>
-                    </div>
-                  )} */}
-                  <Button variant="secondary" className="w-full justify-start">
-                    Log in
-                  </Button>
-                  <Button className="w-full justify-start">
-                    Sign up
-                  </Button>
+                  {!isLoading && (
+                    <>
+                      {isAuthenticated ? (
+                        <>
+                          <div className="mb-4 px-3">
+                            <span className="text-sm font-medium text-secondary">
+                              {user?.name}
+                            </span>
+                          </div>
+                          <Button
+                            variant="secondary"
+                            className="w-full justify-start"
+                            onClick={() => {
+                              handleLogout()
+                              setMobileMenuOpen(false)
+                            }}
+                          >
+                            <LogOut className="h-4 w-4 mr-2" />
+                            Logout
+                          </Button>
+                        </>
+                      ) : (
+                        <>
+                          <Link href="/signin" onClick={() => setMobileMenuOpen(false)}>
+                            <Button variant="secondary" className="w-full justify-start">
+                              Log in
+                            </Button>
+                          </Link>
+                          <Link href="/signup" onClick={() => setMobileMenuOpen(false)}>
+                            <Button className="w-full justify-start">
+                              Sign up
+                            </Button>
+                          </Link>
+                        </>
+                      )}
+                    </>
+                  )}
                 </div>
               </div>
             </div>

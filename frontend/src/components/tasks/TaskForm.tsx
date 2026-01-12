@@ -14,11 +14,13 @@ interface TaskFormProps {
 export function TaskForm({ userId, task, onSuccess, onCancel }: TaskFormProps) {
   const [title, setTitle] = useState(task?.title || '')
   const [description, setDescription] = useState(task?.description || '')
+  const [startDate, setStartDate] = useState(task?.start_date ? task.start_date.split('T')[0] : '')
   const [dueDate, setDueDate] = useState(task?.due_date ? task.due_date.split('T')[0] : '')
   const [categoryId, setCategoryId] = useState<number | ''>(task?.category_id || '')
   const [categories, setCategories] = useState<Category[]>([])
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
+  const [dateError, setDateError] = useState('')
 
   useEffect(() => {
     if (userId) {
@@ -36,6 +38,19 @@ export function TaskForm({ userId, task, onSuccess, onCancel }: TaskFormProps) {
     }
   }
 
+  const validateDates = () => {
+    if (startDate && dueDate) {
+      const start = new Date(startDate)
+      const end = new Date(dueDate)
+      if (start > end) {
+        setDateError('Start date must be less than or equal to end date')
+        return false
+      }
+    }
+    setDateError('')
+    return true
+  }
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     if (!userId) return
@@ -50,10 +65,16 @@ export function TaskForm({ userId, task, onSuccess, onCancel }: TaskFormProps) {
         return
       }
 
+      if (!validateDates()) {
+        setLoading(false)
+        return
+      }
+
       const data: TaskCreate | TaskUpdate = {
         title,
         category_id: Number(categoryId),
         description: description || undefined,
+        start_date: startDate ? new Date(startDate).toISOString() : undefined,
         due_date: dueDate ? new Date(dueDate).toISOString() : undefined,
       }
 
@@ -65,6 +86,7 @@ export function TaskForm({ userId, task, onSuccess, onCancel }: TaskFormProps) {
 
       setTitle('')
       setDescription('')
+      setStartDate('')
       setDueDate('')
       setCategoryId('')
       onSuccess?.()
@@ -93,6 +115,15 @@ export function TaskForm({ userId, task, onSuccess, onCancel }: TaskFormProps) {
           style={{ fontFamily: 'Roboto, sans-serif', fontSize: '14px' }}>
           <AlertCircle size={16} />
           {error}
+        </div>
+      )}
+
+      {dateError && (
+        <div
+          className="bg-red-100 border border-red-400 text-red-700 p-3 rounded-xl mb-4 flex items-center gap-2"
+          style={{ fontFamily: 'Roboto, sans-serif', fontSize: '14px' }}>
+          <AlertCircle size={16} />
+          {dateError}
         </div>
       )}
 
@@ -160,19 +191,43 @@ export function TaskForm({ userId, task, onSuccess, onCancel }: TaskFormProps) {
           />
         </div>
 
-        {/* Due Date Input */}
+        {/* Start Date Input */}
+        <div>
+          <label
+            htmlFor="startDate"
+            className="block text-sm font-medium text-[#191A23] mb-2"
+            style={{ fontFamily: 'Roboto, sans-serif' }}>
+            Start Date
+          </label>
+          <input
+            id="startDate"
+            type="date"
+            value={startDate}
+            onChange={(e) => {
+              setStartDate(e.target.value)
+              setDateError('')
+            }}
+            className="w-full px-4 py-3 bg-white border border-[#191A23]/20 rounded-xl text-[#191A23] focus:outline-none focus:border-[#B9FF66] focus:border-2 focus:ring-2 focus:ring-[#B9FF66]/20 transition-all"
+            style={{ fontFamily: 'Roboto, sans-serif' }}
+          />
+        </div>
+
+        {/* End Date Input */}
         <div>
           <label
             htmlFor="dueDate"
             className="block text-sm font-medium text-[#191A23] mb-2"
             style={{ fontFamily: 'Roboto, sans-serif' }}>
-            Due Date
+            End Date
           </label>
           <input
             id="dueDate"
             type="date"
             value={dueDate}
-            onChange={(e) => setDueDate(e.target.value)}
+            onChange={(e) => {
+              setDueDate(e.target.value)
+              setDateError('')
+            }}
             className="w-full px-4 py-3 bg-white border border-[#191A23]/20 rounded-xl text-[#191A23] focus:outline-none focus:border-[#B9FF66] focus:border-2 focus:ring-2 focus:ring-[#B9FF66]/20 transition-all"
             style={{ fontFamily: 'Roboto, sans-serif' }}
           />

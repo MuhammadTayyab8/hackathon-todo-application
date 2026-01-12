@@ -7,6 +7,7 @@ export interface Task {
   user_id: string
   title: string
   description?: string
+  start_date?: string
   due_date?: string
   category_id?: number
   category_name?: string
@@ -20,6 +21,7 @@ export interface TaskCreate {
   title: string
   category_id: number
   description?: string
+  start_date?: string
   due_date?: string
 }
 
@@ -27,6 +29,7 @@ export interface TaskUpdate {
   title?: string
   category_id?: number
   description?: string
+  start_date?: string
   due_date?: string
   content?: string
   completed?: boolean
@@ -55,25 +58,22 @@ class ApiClient {
     endpoint: string,
     options: RequestInit = {}
   ): Promise<T> {
-    const token = this.getToken()
-
     const headers: HeadersInit = {
       'Content-Type': 'application/json',
-      ...(token && { 'Authorization': `Bearer ${token}` }),
       ...options.headers
     }
 
     const response = await fetch(`${API_BASE}${endpoint}`, {
       ...options,
-      headers
+      headers,
+      credentials: 'include'  // Important: Send cookies with requests
     })
 
     if (!response.ok) {
       if (response.status === 401) {
         if (typeof window !== 'undefined') {
-          // window.location.href = '/signin'
-          // Optional: Clear token on 401
-          localStorage.removeItem('token')
+          // Redirect to signin on authentication failure
+          window.location.href = '/signin'
         }
       }
       const error = await response.json()
@@ -149,13 +149,6 @@ class ApiClient {
   // Auth API Methods
   async getCurrentUser() {
     return this.get<User>('/api/auth/me')
-  }
-
-  private getToken() {
-    if (typeof window !== 'undefined') {
-      return localStorage.getItem('token')
-    }
-    return null
   }
 }
 

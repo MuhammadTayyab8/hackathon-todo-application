@@ -63,10 +63,20 @@ async def create_task(
 ):
     await verify_user_access(user_id, request)
 
-    # Strip timezone info from due_date if present (database uses TIMESTAMP WITHOUT TIME ZONE)
+    # Strip timezone info from dates if present (database uses TIMESTAMP WITHOUT TIME ZONE)
     task_data = task_in.model_dump()
+    if task_data.get('start_date') and task_data['start_date'].tzinfo is not None:
+        task_data['start_date'] = task_data['start_date'].replace(tzinfo=None)
     if task_data.get('due_date') and task_data['due_date'].tzinfo is not None:
         task_data['due_date'] = task_data['due_date'].replace(tzinfo=None)
+
+    # Validate that start_date <= due_date
+    if task_data.get('start_date') and task_data.get('due_date'):
+        if task_data['start_date'] > task_data['due_date']:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="start_date must be less than or equal to due_date"
+            )
 
     task = Task(**task_data, user_id=user_id)
     session.add(task)
@@ -118,10 +128,25 @@ async def update_task(
 
     task_data = task_update.dict(exclude_unset=True)
 
-    # Strip timezone info from due_date if present (database uses TIMESTAMP WITHOUT TIME ZONE)
+    # Strip timezone info from dates if present (database uses TIMESTAMP WITHOUT TIME ZONE)
+    if 'start_date' in task_data and task_data['start_date'] is not None:
+        if hasattr(task_data['start_date'], 'tzinfo') and task_data['start_date'].tzinfo is not None:
+            task_data['start_date'] = task_data['start_date'].replace(tzinfo=None)
     if 'due_date' in task_data and task_data['due_date'] is not None:
         if hasattr(task_data['due_date'], 'tzinfo') and task_data['due_date'].tzinfo is not None:
             task_data['due_date'] = task_data['due_date'].replace(tzinfo=None)
+
+    # Determine final start_date and due_date values after update
+    final_start_date = task_data.get('start_date', task.start_date)
+    final_due_date = task_data.get('due_date', task.due_date)
+
+    # Validate that start_date <= due_date
+    if final_start_date and final_due_date:
+        if final_start_date > final_due_date:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="start_date must be less than or equal to due_date"
+            )
 
     for key, value in task_data.items():
         setattr(task, key, value)

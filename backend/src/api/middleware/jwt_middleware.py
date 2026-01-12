@@ -22,7 +22,7 @@ class JWTAuthMiddleware(BaseHTTPMiddleware):
     async def dispatch(self, request: Request, call_next):
         # Allow OPTIONS requests unconditionally so CORS middleware can handle them
         print(request.url.path, "request.url.path")
-        
+
         if request.method == "OPTIONS":
             return await call_next(request)
 
@@ -30,15 +30,24 @@ class JWTAuthMiddleware(BaseHTTPMiddleware):
         if any(request.url.path.startswith(route) for route in PUBLIC_ROUTES):
             return await call_next(request)
 
-        # 2. Extract Authorization header (T022)
-        auth_header = request.headers.get("Authorization")
-        if not auth_header or not auth_header.startswith("Bearer "):
+        # 2. Extract token from cookie first, then Authorization header (T022)
+        token = None
+
+        # Try to get token from cookie first
+        auth_cookie = request.cookies.get("auth_token")
+        if auth_cookie:
+            token = auth_cookie
+        else:
+            # Fall back to Authorization header
+            auth_header = request.headers.get("Authorization")
+            if auth_header and auth_header.startswith("Bearer "):
+                token = auth_header.split(" ")[1]
+
+        if not token:
             return JSONResponse(
                 status_code=HTTP_401_UNAUTHORIZED,
-                content={"detail": "Missing or invalid authorization header"}
+                content={"detail": "Missing or invalid authorization"}
             )
-
-        token = auth_header.split(" ")[1]
 
         try:
             # 3. Decode and verify token (T022, T024)

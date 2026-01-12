@@ -12,6 +12,7 @@ export const authClient = createAuthClient({
     fetchOptions: {
         auth: {
             type: "Bearer"
-        }
+        },
+        credentials: "include"  // Important: Send cookies with requests
     }
 })

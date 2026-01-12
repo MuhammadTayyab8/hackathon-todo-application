@@ -9,7 +9,8 @@ export function ConditionalNavbar() {
   // Hide Navbar on dashboard routes
   const isDashboardRoute = pathname?.startsWith('/dashboard') ||
                           pathname?.startsWith('/tasks') ||
-                          pathname?.startsWith('/categories')
+                          pathname?.startsWith('/categories') ||
+                          pathname?.startsWith('/calendar')
 
   if (isDashboardRoute) {
     return null

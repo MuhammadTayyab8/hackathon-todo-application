@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react'
 import { useRouter, usePathname } from 'next/navigation'
 import { api, type User } from '@/lib/api'
-import { LayoutDashboard, CheckSquare, FolderOpen, LogOut, ChevronLeft, ChevronRight } from 'lucide-react'
+import { LayoutDashboard, CheckSquare, FolderOpen, Calendar, LogOut, ChevronLeft, ChevronRight } from 'lucide-react'
 import Link from 'next/link'
 
 interface SidebarProps {
@@ -39,7 +39,8 @@ export function Sidebar({ isCollapsed, onToggle, isMobileOpen, onMobileClose }: 
   const navItems = [
     { id: 'dashboard', label: 'Dashboard', icon: LayoutDashboard, path: '/dashboard' },
     { id: 'tasks', label: 'Tasks', icon: CheckSquare, path: '/tasks' },
-    { id: 'categories', label: 'Categories', icon: FolderOpen, path: '/categories' }
+    { id: 'categories', label: 'Categories', icon: FolderOpen, path: '/categories' },
+    { id: 'calendar', label: 'Calendar', icon: Calendar, path: '/calendar' }
   ]
 
   const sidebarContent = (

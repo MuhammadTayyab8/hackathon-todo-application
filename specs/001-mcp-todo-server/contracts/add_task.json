@@ -1,0 +1,104 @@
+{
+  "tool": {
+    "name": "add_task",
+    "description": "Create a new task for the authenticated user. Returns the created task's ID, status, and title.",
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "user_id": {
+          "type": "string",
+          "format": "uuid",
+          "description": "User ID extracted from JWT token (automatically provided by authentication)"
+        },
+        "title": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 500,
+          "description": "Task title (required, non-empty)"
+        },
+        "description": {
+          "type": "string",
+          "maxLength": 5000,
+          "description": "Detailed task description (optional)"
+        },
+        "start_date": {
+          "type": "string",
+          "format": "date-time",
+          "description": "When the task should start (ISO 8601 format, optional)"
+        },
+        "end_date": {
+          "type": "string",
+          "format": "date-time",
+          "description": "When the task is due (ISO 8601 format, optional, must be >= start_date)"
+        }
+      },
+      "required": ["user_id", "title"]
+    },
+    "outputSchema": {
+      "type": "object",
+      "properties": {
+        "task_id": {
+          "type": "string",
+          "format": "uuid",
+          "description": "Unique identifier of the created task"
+        },
+        "status": {
+          "type": "string",
+          "enum": ["pending", "completed"],
+          "description": "Task completion status (always 'pending' for newly created tasks)"
+        },
+        "title": {
+          "type": "string",
+          "description": "Task title as stored"
+        }
+      },
+      "required": ["task_id", "status", "title"]
+    }
+  },
+  "errors": [
+    {
+      "type": "authentication_required",
+      "description": "JWT token is missing or invalid",
+      "example": "Authentication required: Invalid or expired token"
+    },
+    {
+      "type": "validation_error",
+      "description": "Input validation failed (e.g., empty title, end_date before start_date)",
+      "example": "Validation error: end_date must be greater than or equal to start_date"
+    },
+    {
+      "type": "database_error",
+      "description": "Database operation failed",
+      "example": "Database error: Unable to create task"
+    }
+  ],
+  "examples": [
+    {
+      "description": "Create a simple task with only title",
+      "input": {
+        "user_id": "12345678-1234-1234-1234-123456789012",
+        "title": "Buy groceries"
+      },
+      "output": {
+        "task_id": "aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa",
+        "status": "pending",
+        "title": "Buy groceries"
+      }
+    },
+    {
+      "description": "Create a task with all fields",
+      "input": {
+        "user_id": "12345678-1234-1234-1234-123456789012",
+        "title": "Prepare presentation",
+        "description": "Create slides for quarterly review meeting",
+        "start_date": "2026-01-20T09:00:00Z",
+        "end_date": "2026-01-22T17:00:00Z"
+      },
+      "output": {
+        "task_id": "bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbbb",
+        "status": "pending",
+        "title": "Prepare presentation"
+      }
+    }
+  ]
+}

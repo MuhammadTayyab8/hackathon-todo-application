@@ -1,0 +1,165 @@
+{
+  "tool": {
+    "name": "list_tasks",
+    "description": "Retrieve all tasks for the authenticated user, optionally filtered by completion status. Returns an array of task objects.",
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "user_id": {
+          "type": "string",
+          "format": "uuid",
+          "description": "User ID extracted from JWT token (automatically provided by authentication)"
+        },
+        "status_filter": {
+          "type": "string",
+          "enum": ["all", "pending", "completed"],
+          "description": "Filter tasks by completion status: 'all' (default), 'pending' (incomplete), or 'completed'"
+        }
+      },
+      "required": ["user_id", "status_filter"]
+    },
+    "outputSchema": {
+      "type": "object",
+      "properties": {
+        "tasks": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "task_id": {
+                "type": "string",
+                "format": "uuid",
+                "description": "Unique identifier of the task"
+              },
+              "title": {
+                "type": "string",
+                "description": "Task title"
+              },
+              "description": {
+                "type": ["string", "null"],
+                "description": "Task description (may be null)"
+              },
+              "status": {
+                "type": "string",
+                "enum": ["pending", "completed"],
+                "description": "Task completion status"
+              },
+              "start_date": {
+                "type": ["string", "null"],
+                "format": "date-time",
+                "description": "Task start date (ISO 8601 format, may be null)"
+              },
+              "end_date": {
+                "type": ["string", "null"],
+                "format": "date-time",
+                "description": "Task due date (ISO 8601 format, may be null)"
+              },
+              "created_at": {
+                "type": "string",
+                "format": "date-time",
+                "description": "When the task was created (ISO 8601 format)"
+              },
+              "updated_at": {
+                "type": "string",
+                "format": "date-time",
+                "description": "When the task was last updated (ISO 8601 format)"
+              }
+            },
+            "required": ["task_id", "title", "status", "created_at", "updated_at"]
+          },
+          "description": "Array of task objects matching the filter criteria"
+        },
+        "count": {
+          "type": "integer",
+          "minimum": 0,
+          "description": "Total number of tasks returned"
+        }
+      },
+      "required": ["tasks", "count"]
+    }
+  },
+  "errors": [
+    {
+      "type": "authentication_required",
+      "description": "JWT token is missing or invalid",
+      "example": "Authentication required: Invalid or expired token"
+    },
+    {
+      "type": "invalid_filter",
+      "description": "status_filter value is not one of the allowed values",
+      "example": "Invalid filter: status_filter must be 'all', 'pending', or 'completed'"
+    },
+    {
+      "type": "database_error",
+      "description": "Database query failed",
+      "example": "Database error: Unable to retrieve tasks"
+    }
+  ],
+  "examples": [
+    {
+      "description": "List all tasks for a user",
+      "input": {
+        "user_id": "12345678-1234-1234-1234-123456789012",
+        "status_filter": "all"
+      },
+      "output": {
+        "tasks": [
+          {
+            "task_id": "aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa",
+            "title": "Buy groceries",
+            "description": "Milk, eggs, bread",
+            "status": "pending",
+            "start_date": "2026-01-18T15:00:00Z",
+            "end_date": "2026-01-18T18:00:00Z",
+            "created_at": "2026-01-17T10:00:00Z",
+            "updated_at": "2026-01-17T10:00:00Z"
+          },
+          {
+            "task_id": "bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbbb",
+            "title": "Finish report",
+            "description": null,
+            "status": "completed",
+            "start_date": null,
+            "end_date": null,
+            "created_at": "2026-01-16T09:00:00Z",
+            "updated_at": "2026-01-17T11:30:00Z"
+          }
+        ],
+        "count": 2
+      }
+    },
+    {
+      "description": "List only pending tasks",
+      "input": {
+        "user_id": "12345678-1234-1234-1234-123456789012",
+        "status_filter": "pending"
+      },
+      "output": {
+        "tasks": [
+          {
+            "task_id": "aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa",
+            "title": "Buy groceries",
+            "description": "Milk, eggs, bread",
+            "status": "pending",
+            "start_date": "2026-01-18T15:00:00Z",
+            "end_date": "2026-01-18T18:00:00Z",
+            "created_at": "2026-01-17T10:00:00Z",
+            "updated_at": "2026-01-17T10:00:00Z"
+          }
+        ],
+        "count": 1
+      }
+    },
+    {
+      "description": "User with no tasks",
+      "input": {
+        "user_id": "12345678-1234-1234-1234-123456789012",
+        "status_filter": "all"
+      },
+      "output": {
+        "tasks": [],
+        "count": 0
+      }
+    }
+  ]
+}

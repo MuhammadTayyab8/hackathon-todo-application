@@ -1,0 +1,85 @@
+{
+  "tool": {
+    "name": "complete_task",
+    "description": "Mark a task as completed for the authenticated user. Returns the task ID, updated status, and title.",
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "user_id": {
+          "type": "string",
+          "format": "uuid",
+          "description": "User ID extracted from JWT token (automatically provided by authentication)"
+        },
+        "task_id": {
+          "type": "string",
+          "format": "uuid",
+          "description": "Unique identifier of the task to complete"
+        }
+      },
+      "required": ["user_id", "task_id"]
+    },
+    "outputSchema": {
+      "type": "object",
+      "properties": {
+        "task_id": {
+          "type": "string",
+          "format": "uuid",
+          "description": "Unique identifier of the completed task"
+        },
+        "status": {
+          "type": "string",
+          "enum": ["completed"],
+          "description": "Task completion status (always 'completed' after this operation)"
+        },
+        "title": {
+          "type": "string",
+          "description": "Task title"
+        }
+      },
+      "required": ["task_id", "status", "title"]
+    }
+  },
+  "errors": [
+    {
+      "type": "authentication_required",
+      "description": "JWT token is missing or invalid",
+      "example": "Authentication required: Invalid or expired token"
+    },
+    {
+      "type": "task_not_found",
+      "description": "Task does not exist or does not belong to the authenticated user",
+      "example": "Task not found: No task with ID aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa"
+    },
+    {
+      "type": "database_error",
+      "description": "Database update failed",
+      "example": "Database error: Unable to update task"
+    }
+  ],
+  "examples": [
+    {
+      "description": "Complete a pending task",
+      "input": {
+        "user_id": "12345678-1234-1234-1234-123456789012",
+        "task_id": "aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa"
+      },
+      "output": {
+        "task_id": "aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa",
+        "status": "completed",
+        "title": "Buy groceries"
+      }
+    },
+    {
+      "description": "Complete an already completed task (idempotent)",
+      "input": {
+        "user_id": "12345678-1234-1234-1234-123456789012",
+        "task_id": "bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbbb"
+      },
+      "output": {
+        "task_id": "bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbbb",
+        "status": "completed",
+        "title": "Finish report"
+      }
+    }
+  ]
+}

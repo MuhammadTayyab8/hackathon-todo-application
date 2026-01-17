@@ -1,0 +1,78 @@
+{
+  "tool": {
+    "name": "delete_task",
+    "description": "Permanently delete a task for the authenticated user. Returns the deleted task's ID, status, and title.",
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "user_id": {
+          "type": "string",
+          "format": "uuid",
+          "description": "User ID extracted from JWT token (automatically provided by authentication)"
+        },
+        "task_id": {
+          "type": "string",
+          "format": "uuid",
+          "description": "Unique identifier of the task to delete"
+        }
+      },
+      "required": ["user_id", "task_id"]
+    },
+    "outputSchema": {
+      "type": "object",
+      "properties": {
+        "task_id": {
+          "type": "string",
+          "format": "uuid",
+          "description": "Unique identifier of the deleted task"
+        },
+        "status": {
+          "type": "string",
+          "enum": ["deleted"],
+          "description": "Deletion status (always 'deleted' after this operation)"
+        },
+        "title": {
+          "type": "string",
+          "description": "Task title (captured before deletion)"
+        }
+      },
+      "required": ["task_id", "status", "title"]
+    }
+  },
+  "errors": [
+    {
+      "type": "authentication_required",
+      "description": "JWT token is missing or invalid",
+      "example": "Authentication required: Invalid or expired token"
+    },
+    {
+      "type": "task_not_found",
+      "description": "Task does not exist or does not belong to the authenticated user",
+      "example": "Task not found: No task with ID aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa"
+    },
+    {
+      "type": "database_error",
+      "description": "Database deletion failed",
+      "example": "Database error: Unable to delete task"
+    }
+  ],
+  "examples": [
+    {
+      "description": "Delete a task",
+      "input": {
+        "user_id": "12345678-1234-1234-1234-123456789012",
+        "task_id": "aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa"
+      },
+      "output": {
+        "task_id": "aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa",
+        "status": "deleted",
+        "title": "Buy groceries"
+      }
+    }
+  ],
+  "notes": [
+    "This operation is permanent and cannot be undone",
+    "Attempting to delete the same task twice will result in a 'task_not_found' error",
+    "User isolation is enforced - users can only delete their own tasks"
+  ]
+}

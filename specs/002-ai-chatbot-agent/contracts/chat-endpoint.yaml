@@ -1,0 +1,265 @@
+openapi: 3.0.3
+info:
+  title: AI Chatbot Agent API
+  description: |
+    API endpoint for natural language task management through AI chatbot.
+    Users can send messages to manage tasks via conversational interface.
+  version: 1.0.0
+  contact:
+    name: Hackathon Todo App Team
+
+servers:
+  - url: http://localhost:8000
+    description: Local development server
+  - url: https://api.todo-app.example.com
+    description: Production server
+
+paths:
+  /api/{user_id}/chat:
+    post:
+      summary: Send chat message
+      description: |
+        Send a message to the AI chatbot for task management.
+        The chatbot will parse the natural language request, invoke appropriate MCP tools,
+        and return a response. Conversation history is maintained across messages.
+      operationId: sendChatMessage
+      tags:
+        - Chat
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: user_id
+          in: path
+          required: true
+          description: User ID (must match authenticated user from JWT token)
+          schema:
+            type: string
+            example: "user_123"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ChatRequest'
+            examples:
+              newConversation:
+                summary: Start new conversation
+                value:
+                  message: "Add a task to buy groceries tomorrow"
+              continueConversation:
+                summary: Continue existing conversation
+                value:
+                  message: "Show me my pending tasks"
+                  conversation_id: "550e8400-e29b-41d4-a716-446655440000"
+              complexRequest:
+                summary: Complex request with tool chaining
+                value:
+                  message: "Show my tasks and mark the first one as complete"
+                  conversation_id: "550e8400-e29b-41d4-a716-446655440000"
+      responses:
+        '200':
+          description: Successful response from chatbot
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ChatResponse'
+              examples:
+                taskCreated:
+                  summary: Task created successfully
+                  value:
+                    conversation_id: "550e8400-e29b-41d4-a716-446655440000"
+                    message: "I've created a task 'Buy groceries' with due date tomorrow (2026-01-18)."
+                    created_at: "2026-01-17T10:30:00Z"
+                tasksList:
+                  summary: Tasks listed
+                  value:
+                    conversation_id: "550e8400-e29b-41d4-a716-446655440000"
+                    message: "You have 3 pending tasks:\n1. Buy groceries (due tomorrow)\n2. Finish report (due Friday)\n3. Call dentist (no due date)"
+                    created_at: "2026-01-17T10:31:00Z"
+                clarification:
+                  summary: Chatbot asks for clarification
+                  value:
+                    conversation_id: "550e8400-e29b-41d4-a716-446655440000"
+                    message: "I found 3 tasks with 'meeting' in the title. Which one would you like to complete?\n1. Team meeting notes\n2. Client meeting prep\n3. Weekly meeting agenda"
+                    created_at: "2026-01-17T10:32:00Z"
+        '400':
+          description: Bad request (invalid input)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              examples:
+                missingMessage:
+                  summary: Message text is required
+                  value:
+                    detail: "Message text is required"
+                emptyMessage:
+                  summary: Message cannot be empty
+                  value:
+                    detail: "Message text cannot be empty"
+                invalidConversationId:
+                  summary: Invalid conversation ID format
+                  value:
+                    detail: "Invalid conversation_id format (must be UUID)"
+        '401':
+          description: Unauthorized (invalid or missing JWT token)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              examples:
+                missingToken:
+                  summary: Missing JWT token
+                  value:
+                    detail: "Missing authorization token"
+                invalidToken:
+                  summary: Invalid JWT token
+                  value:
+                    detail: "Invalid or expired JWT token"
+                userIdMismatch:
+                  summary: User ID mismatch
+                  value:
+                    detail: "User ID in URL does not match authenticated user"
+        '404':
+          description: Not found (conversation does not exist or does not belong to user)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              examples:
+                conversationNotFound:
+                  summary: Conversation not found
+                  value:
+                    detail: "Conversation not found or does not belong to user"
+        '429':
+          description: Rate limit exceeded
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              examples:
+                rateLimitExceeded:
+                  summary: Too many requests
+                  value:
+                    detail: "Rate limit exceeded. Please try again in 60 seconds."
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              examples:
+                mcpServerError:
+                  summary: MCP server unavailable
+                  value:
+                    detail: "Task management service is temporarily unavailable"
+                databaseError:
+                  summary: Database error
+                  value:
+                    detail: "An error occurred processing your request"
+                agentError:
+                  summary: Agent error
+                  value:
+                    detail: "An error occurred processing your request"
+
+components:
+  securitySchemes:
+    BearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+      description: |
+        JWT token issued by Better Auth.
+        Include in Authorization header as: Bearer <token>
+
+  schemas:
+    ChatRequest:
+      type: object
+      required:
+        - message
+      properties:
+        message:
+          type: string
+          description: User's message text
+          minLength: 1
+          maxLength: 2000
+          example: "Add a task to buy groceries tomorrow"
+        conversation_id:
+          type: string
+          format: uuid
+          description: |
+            Optional conversation ID to continue existing conversation.
+            If not provided, a new conversation will be created.
+          example: "550e8400-e29b-41d4-a716-446655440000"
+
+    ChatResponse:
+      type: object
+      required:
+        - conversation_id
+        - message
+        - created_at
+      properties:
+        conversation_id:
+          type: string
+          format: uuid
+          description: Conversation ID (use this for follow-up messages)
+          example: "550e8400-e29b-41d4-a716-446655440000"
+        message:
+          type: string
+          description: AI assistant's response message
+          example: "I've created a task 'Buy groceries' with due date tomorrow."
+        created_at:
+          type: string
+          format: date-time
+          description: Timestamp when response was created (ISO 8601)
+          example: "2026-01-17T10:30:00Z"
+
+    ErrorResponse:
+      type: object
+      required:
+        - detail
+      properties:
+        detail:
+          type: string
+          description: Human-readable error message
+          example: "Invalid or expired JWT token"
+
+  examples:
+    CreateTaskRequest:
+      summary: Create a new task
+      value:
+        message: "Add a task to buy groceries tomorrow"
+
+    ListTasksRequest:
+      summary: List tasks
+      value:
+        message: "Show me my pending tasks"
+        conversation_id: "550e8400-e29b-41d4-a716-446655440000"
+
+    CompleteTaskRequest:
+      summary: Complete a task
+      value:
+        message: "Mark the grocery task as done"
+        conversation_id: "550e8400-e29b-41d4-a716-446655440000"
+
+    UpdateTaskRequest:
+      summary: Update a task
+      value:
+        message: "Change the grocery task due date to next Monday"
+        conversation_id: "550e8400-e29b-41d4-a716-446655440000"
+
+    DeleteTaskRequest:
+      summary: Delete a task
+      value:
+        message: "Delete the completed tasks"
+        conversation_id: "550e8400-e29b-41d4-a716-446655440000"
+
+    ToolChainingRequest:
+      summary: Complex request with multiple operations
+      value:
+        message: "Show my tasks and mark the first one complete"
+        conversation_id: "550e8400-e29b-41d4-a716-446655440000"
+
+tags:
+  - name: Chat
+    description: AI chatbot endpoints for natural language task management

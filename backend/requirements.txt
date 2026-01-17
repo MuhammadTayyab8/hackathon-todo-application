@@ -11,3 +11,7 @@ pytest-asyncio>=0.21.0
 python-dotenv
 alembic>=1.13.0
 mcp==1.0.0
+openai-agents
+openai>=1.0.0
+tiktoken>=0.5.0
+slowapi>=0.1.9

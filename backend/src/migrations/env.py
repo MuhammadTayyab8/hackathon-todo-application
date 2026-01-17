@@ -45,6 +45,8 @@ from sqlmodel import SQLModel
 from src.models.user import User
 from src.models.task import Task
 from src.models.category import Category
+from src.models.conversation import Conversation
+from src.models.message import Message
 
 # add your model's MetaData object here
 # for 'autogenerate' support

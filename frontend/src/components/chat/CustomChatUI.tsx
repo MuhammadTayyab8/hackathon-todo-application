@@ -126,26 +126,26 @@ export function CustomChatUI({ className = '' }: CustomChatUIProps) {
     inputRef.current?.focus();
   };
 
-  // Check authentication
-  if (!isAuthenticated || !user?.id) {
-    return (
-      <div className={`flex items-center justify-center h-full ${className}`}>
-        <div className="text-center space-y-4 p-6">
-          <div className="text-4xl">🔒</div>
-          <h3 className="text-lg font-semibold text-gray-900">Authentication Required</h3>
-          <p className="text-sm text-gray-600">Please sign in to use the chat.</p>
-        </div>
-      </div>
-    );
-  }
+  // // Check authentication
+  // if (!isAuthenticated || !user?.id) {
+  //   return (
+  //     <div className={`flex items-center justify-center h-full ${className}`}>
+  //       <div className="text-center space-y-4 p-6">
+  //         <div className="text-4xl">🔒</div>
+  //         <h3 className="text-lg font-semibold text-gray-900">Authentication Required</h3>
+  //         <p className="text-sm text-gray-600">Please sign in to use the chat.</p>
+  //       </div>
+  //     </div>
+  //   );
+  // }
 
   return (
     <div className={`flex flex-col h-full bg-white ${className}`}>
       {/* Header */}
       <div className="flex items-center justify-between px-4 py-3 border-b border-gray-200 bg-white">
         <div className="flex items-center gap-2">
-          <MessageSquare className="w-5 h-5 text-blue-600" />
-          <h2 className="text-lg font-semibold text-gray-900">AI Task Assistant</h2>
+          <MessageSquare className="w-5 h-5 text-primary" />
+          <h4 className="text-sm font-semibold text-gray-900">AI Task Assistant</h4>
         </div>
         <button
           onClick={startNewChat}
@@ -159,8 +159,8 @@ export function CustomChatUI({ className = '' }: CustomChatUIProps) {
       <div className="flex-1 overflow-y-auto p-4 space-y-4">
         {messages.length === 0 && (
           <div className="flex flex-col items-center justify-center h-full text-center space-y-4">
-            <div className="w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center">
-              <MessageSquare className="w-8 h-8 text-blue-600" />
+            <div className="w-16 h-16 bg-secondary rounded-full flex items-center justify-center">
+              <MessageSquare className="w-8 h-8 text-primary" />
             </div>
             <div>
               <h3 className="text-lg font-semibold text-gray-900 mb-2">
@@ -170,21 +170,21 @@ export function CustomChatUI({ className = '' }: CustomChatUIProps) {
               <div className="space-y-2">
                 <button
                   onClick={() => setInputValue('Add a task to buy groceries tomorrow')}
-                  className="block w-full px-4 py-2 text-sm text-left text-gray-700 hover:bg-gray-100 rounded-lg transition-colors"
+                  className="block w-full px-4 py-2 text-sm text-left text-gray-700 bg-gray-50 hover:bg-gray-100 rounded-lg transition-colors"
                 >
-                  📝 Add a task to buy groceries tomorrow
+                  Add a task to buy groceries tomorrow
                 </button>
                 <button
                   onClick={() => setInputValue('Show me my pending tasks')}
-                  className="block w-full px-4 py-2 text-sm text-left text-gray-700 hover:bg-gray-100 rounded-lg transition-colors"
+                  className="block w-full px-4 py-2 text-sm text-left text-gray-700 bg-gray-50 hover:bg-gray-100 rounded-lg transition-colors"
                 >
-                  📋 Show me my pending tasks
+                  Show me my pending tasks
                 </button>
                 <button
                   onClick={() => setInputValue('Mark the first task as complete')}
-                  className="block w-full px-4 py-2 text-sm text-left text-gray-700 hover:bg-gray-100 rounded-lg transition-colors"
+                  className="block w-full px-4 py-2 text-sm text-left text-gray-700 bg-gray-50 hover:bg-gray-100 rounded-lg transition-colors"
                 >
-                  ✅ Mark the first task as complete
+                  Mark the first task as complete
                 </button>
               </div>
             </div>
@@ -199,7 +199,7 @@ export function CustomChatUI({ className = '' }: CustomChatUIProps) {
             <div
               className={`max-w-[80%] rounded-lg px-4 py-2 ${
                 message.role === 'user'
-                  ? 'bg-blue-600 text-white'
+                  ? 'bg-primaty/20 text-white'
                   : 'bg-gray-100 text-gray-900'
               }`}
             >
@@ -244,15 +244,15 @@ export function CustomChatUI({ className = '' }: CustomChatUIProps) {
             value={inputValue}
             onChange={(e) => setInputValue(e.target.value)}
             onKeyDown={handleKeyDown}
-            placeholder="Type your message... (Press Enter to send, Shift+Enter for new line)"
-            className="flex-1 resize-none rounded-lg border border-gray-300 px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+            placeholder="Type your message..."
+            className="flex-1 resize-none rounded-lg border border-gray-300 px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent"
             rows={1}
             disabled={isLoading}
           />
           <button
             onClick={sendMessage}
             disabled={!inputValue.trim() || isLoading}
-            className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:bg-gray-300 disabled:cursor-not-allowed transition-colors flex items-center gap-2"
+            className="px-4 py-2 bg-secondary text-primary rounded-lg hover:bg-secondary/80 disabled:bg-gray-300 disabled:cursor-not-allowed transition-colors flex items-center gap-2"
           >
             {isLoading ? (
               <Loader2 className="w-5 h-5 animate-spin" />

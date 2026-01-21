@@ -3,7 +3,7 @@
  *
  * Floating chat widget that can be toggled open/closed.
  * Displays a floating icon in the bottom-left corner and shows
- * the ChatKit interface in a modal overlay when opened.
+ * the custom chat interface in a modal overlay when opened.
  *
  * Task: T020, T022, T023, T024
  */
@@ -12,7 +12,7 @@
 
 import { useState } from 'react';
 import { MessageCircle, X } from 'lucide-react';
-import { ChatKitWrapper } from './ChatKitWrapper';
+import { CustomChatUI } from './CustomChatUI';
 
 interface ChatWidgetProps {
   className?: string;
@@ -47,13 +47,13 @@ export function ChatWidget({ className = '' }: ChatWidgetProps) {
             fixed bottom-6 left-6 z-50
             flex items-center justify-center
             w-14 h-14
-            bg-blue-600 hover:bg-blue-700
-            text-white
+            bg-secondary hover:bg-secondary/90
+            text-primary
             rounded-full
             shadow-lg hover:shadow-xl
             transition-all duration-200
             hover:scale-110
-            focus:outline-none focus:ring-4 focus:ring-blue-300
+            focus:outline-none focus:ring-4 focus:ring-secondary/50
             ${className}
           `}
           aria-label="Open chat"
@@ -81,26 +81,23 @@ export function ChatWidget({ className = '' }: ChatWidgetProps) {
             {/* Modal card */}
             <div className="bg-white rounded-lg shadow-2xl overflow-hidden w-[400px] h-[600px] flex flex-col">
               {/* Header with close button */}
-              <div className="flex items-center justify-between px-4 py-3 bg-blue-600 text-white">
+              <div className="flex items-center justify-between px-4 py-3 bg-secondary text-primary">
                 <div className="flex items-center space-x-2">
                   <MessageCircle className="w-5 h-5" />
-                  {/* <h2 className="text-lg font-semibold">AI Assistant</h2> */}
+                  <h4 className="text-lg font-semibold">Todo App</h4>
                 </div>
                 <button
                   onClick={handleClose}
-                  className="p-1 hover:bg-blue-700 rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-white"
+                  className="p-1 hover:bg-secondary/90 rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-white"
                   aria-label="Close chat"
                 >
                   <X className="w-5 h-5" />
                 </button>
               </div>
 
-              {/* ChatKit content */}
+              {/* Custom Chat UI content */}
               <div className="flex-1 overflow-hidden">
-                <ChatKitWrapper
-                  className="h-full w-full"
-                  onError={handleError}
-                />
+                <CustomChatUI className="h-full w-full" />
               </div>
 
               {/* Error indicator (if needed) */}

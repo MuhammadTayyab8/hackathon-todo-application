@@ -18,7 +18,8 @@ set_tracing_disabled(True)
 
 # Model Configuration
 # For OpenRouter with OpenAI Agents SDK (OpenRouter is OpenAI-compatible)
-MODEL_NAME = "mistralai/devstral-2512:free"
+# Using a free, reliable model that works with OpenRouter
+MODEL_NAME = "google/gemini-2.0-flash-exp:free"
 OPENROUTER_BASE_URL = "https://openrouter.ai/api/v1"
 
 # System Instructions for Task Management Agent

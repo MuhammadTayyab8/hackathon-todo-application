@@ -150,6 +150,11 @@ class ApiClient {
   async getCurrentUser() {
     return this.get<User>('/api/auth/me')
   }
+
+  // Chat API Methods
+  async createChatSession(userId: string) {
+    return this.post<{ client_secret: string }>(`/api/${userId}/chat`, {})
+  }
 }
 
 export const api = new ApiClient()

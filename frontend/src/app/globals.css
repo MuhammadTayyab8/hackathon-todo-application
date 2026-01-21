@@ -28,6 +28,20 @@
 
   /* Animation timing */
   --ease-out-expo: cubic-bezier(0.16, 1, 0.3, 1);
+
+  /* Chat-specific tokens */
+  --chat-message-user-bg: #B9FF66;
+  --chat-message-user-text: #191A23;
+  --chat-message-assistant-bg: #F3F3F3;
+  --chat-message-assistant-text: #191A23;
+  --chat-input-bg: #FFFFFF;
+  --chat-input-border: #E5E7EB;
+  --chat-tool-confirmation-bg: #FEF3C7;
+  --chat-tool-confirmation-border: #F59E0B;
+  --chat-tool-success-bg: #D1FAE5;
+  --chat-tool-success-border: #10B981;
+  --chat-tool-error-bg: #FEE2E2;
+  --chat-tool-error-border: #EF4444;
 }
 
 @theme inline {
@@ -51,6 +65,20 @@
   --spacing-app-sm: var(--app-spacing-sm);
   --spacing-app-md: var(--app-spacing-md);
   --spacing-app-lg: var(--app-spacing-lg);
+
+  /* Chat-specific color tokens */
+  --color-chat-message-user-bg: var(--chat-message-user-bg);
+  --color-chat-message-user-text: var(--chat-message-user-text);
+  --color-chat-message-assistant-bg: var(--chat-message-assistant-bg);
+  --color-chat-message-assistant-text: var(--chat-message-assistant-text);
+  --color-chat-input-bg: var(--chat-input-bg);
+  --color-chat-input-border: var(--chat-input-border);
+  --color-chat-tool-confirmation-bg: var(--chat-tool-confirmation-bg);
+  --color-chat-tool-confirmation-border: var(--chat-tool-confirmation-border);
+  --color-chat-tool-success-bg: var(--chat-tool-success-bg);
+  --color-chat-tool-success-border: var(--chat-tool-success-border);
+  --color-chat-tool-error-bg: var(--chat-tool-error-bg);
+  --color-chat-tool-error-border: var(--chat-tool-error-border);
 }
 
 /* Dark mode */

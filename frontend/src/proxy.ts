@@ -7,7 +7,7 @@ export default async function proxy(request: NextRequest) {
 
   // Define route types
   const isPublicRoute = ['/', '/signin', '/signup'].includes(path)
-  const isProtectedRoute = ['/dashboard', '/tasks', '/categories', '/calendar'].some(
+  const isProtectedRoute = ['/dashboard', '/tasks', '/categories', '/calendar', '/chat'].some(
     route => path.startsWith(route)
   )
 

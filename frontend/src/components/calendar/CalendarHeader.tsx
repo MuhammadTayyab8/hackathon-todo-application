@@ -1,7 +1,7 @@
 "use client"
 
 import { ChevronLeft, ChevronRight } from "lucide-react"
-import { getMonthName } from "@/lib/utils/date-helpers"
+import { getMonthName } from "../../../lib/utils/date-helpers"
 
 interface CalendarHeaderProps {
   currentMonth: number

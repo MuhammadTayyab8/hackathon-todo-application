@@ -31,6 +31,7 @@ export function useAuth(): UseAuthReturn {
 
         if (response.ok) {
           const userData = await response.json()
+          console.log(userData, "userData FRom USWAUTH")
           setUser({
             id: userData.id,
             name: userData.username || userData.email,

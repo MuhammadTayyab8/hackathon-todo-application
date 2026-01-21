@@ -20,6 +20,9 @@ from sqlmodel.ext.asyncio.session import AsyncSession
 from src.mcp_server import schemas
 from src.mcp_server.auth import handle_tool_error
 
+from dotenv import load_dotenv
+
+load_dotenv()
 
 # Global database engine (initialized on server startup)
 db_engine: Optional[AsyncEngine] = None

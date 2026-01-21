@@ -1,0 +1,503 @@
+openapi: 3.0.3
+info:
+  title: ChatKit AI Chat API
+  description: API endpoints for ChatKit AI chat interface integration
+  version: 1.0.0
+  contact:
+    name: Todo App Team
+
+servers:
+  - url: http://localhost:8000
+    description: Development server
+  - url: https://api.todoapp.com
+    description: Production server
+
+security:
+  - BearerAuth: []
+
+paths:
+  /api/{user_id}/chat/session:
+    post:
+      summary: Create ChatKit session
+      description: Creates a new ChatKit session and returns the client secret for frontend initialization
+      operationId: createChatSession
+      tags:
+        - Chat
+      parameters:
+        - name: user_id
+          in: path
+          required: true
+          description: User ID from JWT token
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: Session created successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SessionResponse'
+        '401':
+          description: Unauthorized - Invalid or missing JWT token
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '403':
+          description: Forbidden - User ID mismatch
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '500':
+          description: Internal server error - Session creation failed
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /api/{user_id}/chat/conversations:
+    get:
+      summary: List user conversations
+      description: Retrieves all conversations for the authenticated user
+      operationId: listConversations
+      tags:
+        - Conversations
+      parameters:
+        - name: user_id
+          in: path
+          required: true
+          description: User ID from JWT token
+          schema:
+            type: string
+            format: uuid
+        - name: limit
+          in: query
+          required: false
+          description: Maximum number of conversations to return
+          schema:
+            type: integer
+            default: 50
+            minimum: 1
+            maximum: 100
+        - name: offset
+          in: query
+          required: false
+          description: Number of conversations to skip
+          schema:
+            type: integer
+            default: 0
+            minimum: 0
+      responses:
+        '200':
+          description: Conversations retrieved successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ConversationListResponse'
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '403':
+          description: Forbidden - User ID mismatch
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+    post:
+      summary: Create new conversation
+      description: Creates a new conversation for the authenticated user
+      operationId: createConversation
+      tags:
+        - Conversations
+      parameters:
+        - name: user_id
+          in: path
+          required: true
+          description: User ID from JWT token
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateConversationRequest'
+      responses:
+        '201':
+          description: Conversation created successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ConversationResponse'
+        '400':
+          description: Bad request - Invalid input
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '403':
+          description: Forbidden - User ID mismatch
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /api/{user_id}/chat/conversations/{conversation_id}:
+    get:
+      summary: Get conversation with messages
+      description: Retrieves a specific conversation with all its messages
+      operationId: getConversation
+      tags:
+        - Conversations
+      parameters:
+        - name: user_id
+          in: path
+          required: true
+          description: User ID from JWT token
+          schema:
+            type: string
+            format: uuid
+        - name: conversation_id
+          in: path
+          required: true
+          description: Conversation ID
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: Conversation retrieved successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ConversationDetailResponse'
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '403':
+          description: Forbidden - User ID mismatch or conversation not owned by user
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '404':
+          description: Conversation not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+    patch:
+      summary: Update conversation
+      description: Updates conversation properties (e.g., title)
+      operationId: updateConversation
+      tags:
+        - Conversations
+      parameters:
+        - name: user_id
+          in: path
+          required: true
+          description: User ID from JWT token
+          schema:
+            type: string
+            format: uuid
+        - name: conversation_id
+          in: path
+          required: true
+          description: Conversation ID
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateConversationRequest'
+      responses:
+        '200':
+          description: Conversation updated successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ConversationResponse'
+        '400':
+          description: Bad request - Invalid input
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '403':
+          description: Forbidden - User ID mismatch or conversation not owned by user
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '404':
+          description: Conversation not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+    delete:
+      summary: Delete conversation
+      description: Soft deletes a conversation (marks as deleted)
+      operationId: deleteConversation
+      tags:
+        - Conversations
+      parameters:
+        - name: user_id
+          in: path
+          required: true
+          description: User ID from JWT token
+          schema:
+            type: string
+            format: uuid
+        - name: conversation_id
+          in: path
+          required: true
+          description: Conversation ID
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '204':
+          description: Conversation deleted successfully
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '403':
+          description: Forbidden - User ID mismatch or conversation not owned by user
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '404':
+          description: Conversation not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+components:
+  securitySchemes:
+    BearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+      description: JWT token from Better Auth
+
+  schemas:
+    SessionResponse:
+      type: object
+      required:
+        - client_secret
+      properties:
+        client_secret:
+          type: string
+          description: ChatKit client secret for frontend initialization
+          example: "sk_live_..."
+
+    ConversationListResponse:
+      type: object
+      required:
+        - conversations
+        - total
+      properties:
+        conversations:
+          type: array
+          items:
+            $ref: '#/components/schemas/ConversationSummary'
+        total:
+          type: integer
+          description: Total number of conversations
+          example: 42
+        limit:
+          type: integer
+          description: Number of conversations returned
+          example: 50
+        offset:
+          type: integer
+          description: Number of conversations skipped
+          example: 0
+
+    ConversationSummary:
+      type: object
+      required:
+        - id
+        - title
+        - created_at
+        - updated_at
+        - message_count
+      properties:
+        id:
+          type: string
+          format: uuid
+          description: Conversation unique identifier
+          example: "123e4567-e89b-12d3-a456-426614174000"
+        title:
+          type: string
+          maxLength: 200
+          description: Conversation title
+          example: "Getting Started with Tasks"
+        created_at:
+          type: string
+          format: date-time
+          description: Conversation creation timestamp
+          example: "2026-01-21T10:00:00Z"
+        updated_at:
+          type: string
+          format: date-time
+          description: Last update timestamp
+          example: "2026-01-21T14:30:00Z"
+        message_count:
+          type: integer
+          description: Number of messages in conversation
+          example: 12
+
+    ConversationResponse:
+      type: object
+      required:
+        - id
+        - title
+        - created_at
+        - updated_at
+      properties:
+        id:
+          type: string
+          format: uuid
+          description: Conversation unique identifier
+          example: "123e4567-e89b-12d3-a456-426614174000"
+        title:
+          type: string
+          maxLength: 200
+          description: Conversation title
+          example: "Getting Started with Tasks"
+        created_at:
+          type: string
+          format: date-time
+          description: Conversation creation timestamp
+          example: "2026-01-21T10:00:00Z"
+        updated_at:
+          type: string
+          format: date-time
+          description: Last update timestamp
+          example: "2026-01-21T14:30:00Z"
+
+    ConversationDetailResponse:
+      type: object
+      required:
+        - conversation
+        - messages
+      properties:
+        conversation:
+          $ref: '#/components/schemas/ConversationResponse'
+        messages:
+          type: array
+          items:
+            $ref: '#/components/schemas/Message'
+
+    Message:
+      type: object
+      required:
+        - id
+        - role
+        - content
+        - status
+        - created_at
+      properties:
+        id:
+          type: string
+          format: uuid
+          description: Message unique identifier
+          example: "456e7890-e89b-12d3-a456-426614174001"
+        role:
+          type: string
+          enum: [user, assistant]
+          description: Message sender role
+          example: "user"
+        content:
+          type: string
+          maxLength: 4000
+          description: Message text content
+          example: "How do I create a new task?"
+        status:
+          type: string
+          enum: [sending, sent, failed]
+          description: Message delivery status
+          example: "sent"
+        created_at:
+          type: string
+          format: date-time
+          description: Message creation timestamp
+          example: "2026-01-21T10:05:00Z"
+
+    CreateConversationRequest:
+      type: object
+      required:
+        - title
+      properties:
+        title:
+          type: string
+          minLength: 1
+          maxLength: 200
+          description: Conversation title
+          example: "New Conversation"
+
+    UpdateConversationRequest:
+      type: object
+      required:
+        - title
+      properties:
+        title:
+          type: string
+          minLength: 1
+          maxLength: 200
+          description: Updated conversation title
+          example: "Updated Title"
+
+    Error:
+      type: object
+      required:
+        - detail
+      properties:
+        detail:
+          type: string
+          description: Error message
+          example: "Unauthorized: Invalid JWT token"
+        code:
+          type: string
+          description: Error code
+          example: "UNAUTHORIZED"
+
+tags:
+  - name: Chat
+    description: ChatKit session management
+  - name: Conversations
+    description: Conversation and message management

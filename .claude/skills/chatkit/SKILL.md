@@ -75,10 +75,95 @@ export function MyChat() {
 
 ### 3. Backend Session Endpoint
 
-Create an API endpoint to generate client secrets:
+#### FastAPI Backend (Python)
+
+Create a FastAPI endpoint to generate ChatKit client secrets using the OpenAI Python SDK:
+
+```python
+from fastapi import FastAPI, HTTPException
+from pydantic import BaseModel
+from openai import OpenAI
+import os
+
+app = FastAPI()
+openai_client = OpenAI(api_key=os.environ.get("OPENAI_API_KEY"))
+
+class SessionResponse(BaseModel):
+    client_secret: str
+
+@app.post("/api/chatkit/session", response_model=SessionResponse)
+async def create_chatkit_session():
+    """
+    Creates a new ChatKit session and returns the client secret.
+    The client secret is used by the frontend to initialize ChatKit.
+    """
+    try:
+        session = openai_client.chatkit.sessions.create({
+            "model": "gpt-4o-realtime-preview",
+            "voice": "alloy",
+            # Optional: Add custom configuration
+            # "instructions": "You are a helpful assistant...",
+            # "tools": [...],
+        })
+        return {"client_secret": session.client_secret}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Failed to create session: {str(e)}")
+
+@app.post("/api/chatkit/refresh")
+async def refresh_chatkit_session(token: str):
+    """
+    Refreshes an existing ChatKit session.
+    Implement session validation and refresh logic here.
+    """
+    try:
+        # Validate existing token and create new session if needed
+        session = openai_client.chatkit.sessions.create({
+            "model": "gpt-4o-realtime-preview",
+            "voice": "alloy",
+        })
+        return {"client_secret": session.client_secret}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Failed to refresh session: {str(e)}")
+```
+
+**Integration with existing FastAPI backend:**
+
+```python
+# In your main.py or routes file
+from fastapi import APIRouter
+from .services.chatkit_service import create_chatkit_session, refresh_chatkit_session
+
+router = APIRouter(prefix="/api/chatkit", tags=["chatkit"])
+
+router.add_api_route("/session", create_chatkit_session, methods=["POST"])
+router.add_api_route("/refresh", refresh_chatkit_session, methods=["POST"])
+
+# Add to main app
+app.include_router(router)
+```
+
+**Environment Setup:**
+
+Ensure your `.env` file contains:
+```bash
+OPENAI_API_KEY=sk-...
+```
+
+**Dependencies:**
+
+Add to `requirements.txt` or `pyproject.toml`:
+```
+openai>=1.0.0
+fastapi>=0.100.0
+pydantic>=2.0.0
+```
+
+#### Next.js Backend (TypeScript)
+
+Alternatively, for Next.js API routes:
 
 ```typescript
-// Next.js API route example
+// app/api/chatkit/session/route.ts
 import { NextRequest, NextResponse } from 'next/server';
 
 export async function POST(req: NextRequest) {

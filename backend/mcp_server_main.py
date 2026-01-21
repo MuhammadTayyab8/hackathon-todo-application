@@ -15,6 +15,9 @@ Configuration:
 import asyncio
 import sys
 from src.mcp_server.server import run_server
+from dotenv import load_dotenv
+
+load_dotenv()
 
 
 def main():

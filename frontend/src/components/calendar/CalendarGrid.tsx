@@ -2,7 +2,7 @@
 
 import { Task } from "@/lib/api"
 import { TaskEvent } from "./TaskEvent"
-import { getDaysInMonth, getFirstDayOfMonth, isDateInRange } from "@/lib/utils/date-helpers"
+import { getDaysInMonth, getFirstDayOfMonth, isDateInRange } from "../../../lib/utils/date-helpers"
 
 interface CalendarGridProps {
   tasks: Task[]

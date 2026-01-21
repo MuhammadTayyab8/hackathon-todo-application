@@ -382,6 +382,10 @@ async def process_chat_message(
             is_new_conversation = True
             logger.info(f"Created new conversation: conversation_id={conversation.id}")
 
+        # Store conversation_id and title to avoid lazy-loading issues after sync operations
+        current_conversation_id = conversation.id
+        current_conversation_title = conversation.title
+
         db_time = time.time() - db_start
         logger.info(f"Database query time: {db_time:.3f}s")
 
@@ -415,7 +419,7 @@ async def process_chat_message(
         # Step 4: Store user message
         user_message = await create_message(
             session=session,
-            conversation_id=conversation.id,
+            conversation_id=current_conversation_id,
             role=MessageRole.USER,
             content=message,
             tool_calls=None
@@ -427,7 +431,7 @@ async def process_chat_message(
         # Step 6: Run agent with user message and history context
         # T052: Track agent response time
         agent_start = time.time()
-        assistant_response = run_agent(agent=agent, message=message, history=history)
+        assistant_response = await run_agent(agent=agent, message=message, history=history)
         agent_time = time.time() - agent_start
 
         # Count tool calls from response (approximate - would need agent instrumentation for exact count)
@@ -441,16 +445,21 @@ async def process_chat_message(
         # Step 7: Store assistant response
         assistant_message = await create_message(
             session=session,
-            conversation_id=conversation.id,
+            conversation_id=current_conversation_id,
             role=MessageRole.ASSISTANT,
             content=assistant_response,
             tool_calls=None
         )
 
+        # Store created_at to avoid lazy-loading issues
+        message_created_at = assistant_message.created_at
+
         # Step 8: Generate title for new conversations (T039)
-        if is_new_conversation and not conversation.title:
+        if is_new_conversation and not current_conversation_title:
             # Generate title from first user message
             title = generate_conversation_title(message)
+            # Refresh conversation object to ensure it's in the session
+            await session.refresh(conversation)
             conversation.title = title
             await session.commit()
             await session.refresh(conversation)
@@ -464,14 +473,14 @@ async def process_chat_message(
             f"agent_time={agent_time:.3f}s, "
             f"db_time={db_time:.3f}s, "
             f"tokens={token_count}, "
-            f"conversation_id={conversation.id}"
+            f"conversation_id={current_conversation_id}"
         )
 
         # Step 9: Return result
         return {
-            "conversation_id": conversation.id,
+            "conversation_id": current_conversation_id,
             "message": assistant_response,
-            "created_at": assistant_message.created_at
+            "created_at": message_created_at
         }
 
     except ValueError as e:

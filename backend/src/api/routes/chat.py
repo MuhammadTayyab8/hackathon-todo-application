@@ -19,6 +19,10 @@ from sqlmodel.ext.asyncio.session import AsyncSession
 
 from src.db import get_session
 from src.services.chat_service import process_chat_message
+from src.services.chatkit_server import chatkit_server, RequestContext
+from chatkit.server import StreamingResult
+from openai import OpenAI
+import os
 
 # Configure logging (T048)
 logger = logging.getLogger(__name__)
@@ -139,6 +143,26 @@ class ChatResponse(BaseModel):
                 "conversation_id": "550e8400-e29b-41d4-a716-446655440000",
                 "message": "I've created a task 'Buy groceries' with due date tomorrow (2026-01-18).",
                 "created_at": "2026-01-17T10:30:00Z"
+            }
+        }
+
+
+class ChatSessionResponse(BaseModel):
+    """
+    Response model for chat session creation endpoint.
+
+    Attributes:
+        client_secret: OpenAI client secret for ChatKit integration
+    """
+    client_secret: str = Field(
+        ...,
+        description="OpenAI client secret for establishing ChatKit connection"
+    )
+
+    class Config:
+        json_schema_extra = {
+            "example": {
+                "client_secret": "sess_abc123xyz..."
             }
         }
 
@@ -528,4 +552,241 @@ async def send_chat_message(
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail=error_detail
+        )
+
+
+@router.post(
+    "/{user_id}/chat/session",
+    response_model=ChatSessionResponse,
+    status_code=status.HTTP_200_OK,
+    summary="Create ChatKit session",
+    description="""
+    Create a new ChatKit session for real-time chat interaction.
+
+    **Authentication:**
+    - Requires valid JWT token in Authorization header (Bearer token)
+    - User ID in URL must match authenticated user from JWT
+
+    **Returns:**
+    - client_secret: OpenAI client secret for ChatKit integration
+
+    **Usage:**
+    Use the returned client_secret to initialize ChatKit on the frontend.
+    """,
+    responses={
+        200: {
+            "description": "Session created successfully",
+            "content": {
+                "application/json": {
+                    "example": {
+                        "client_secret": "sess_abc123xyz..."
+                    }
+                }
+            }
+        },
+        401: {
+            "description": "Unauthorized (invalid or missing JWT token)",
+            "content": {
+                "application/json": {
+                    "examples": {
+                        "missing_token": {
+                            "summary": "Missing JWT token",
+                            "value": {"detail": "Missing authorization token"}
+                        },
+                        "user_id_mismatch": {
+                            "summary": "User ID mismatch",
+                            "value": {"detail": "User ID in URL does not match authenticated user"}
+                        }
+                    }
+                }
+            }
+        },
+        500: {
+            "description": "Internal server error",
+            "content": {
+                "application/json": {
+                    "example": {"detail": "Failed to create chat session"}
+                }
+            }
+        }
+    },
+    tags=["Chat"]
+)
+@limiter.limit("60/minute")
+async def create_chat_session(
+    user_id: str,
+    request: Request
+) -> ChatSessionResponse:
+    """
+    Create a new ChatKit session.
+
+    This endpoint creates an OpenAI Realtime session and returns a client_secret
+    that can be used to initialize ChatKit on the frontend.
+
+    Args:
+        user_id: User ID from URL path (must match authenticated user)
+        request: FastAPI request object
+
+    Returns:
+        ChatSessionResponse: Contains client_secret for ChatKit
+
+    Raises:
+        HTTPException: For various error conditions (401, 500)
+    """
+    start_time = time.time()
+
+    logger.info(
+        f"Creating chat session: user_id={user_id}, "
+        f"remote_addr={request.client.host if request.client else 'unknown'}"
+    )
+
+    try:
+        # Verify user_id matches authenticated user
+        verify_user_id_match(request, user_id)
+
+        # Get OpenAI API key from environment
+        openai_api_key = os.getenv("OPENAI_API_KEY")
+        if not openai_api_key:
+            logger.error("OPENAI_API_KEY not configured")
+            raise HTTPException(
+                status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+                detail="Chat service is not configured"
+            )
+
+        # Initialize OpenAI client
+        client = OpenAI(api_key=openai_api_key)
+
+        # Create a Realtime session
+        session = client.realtime.sessions.create(
+            model="gpt-4o-realtime-preview-2024-12-17",
+            voice="alloy"
+        )
+
+        response_time = time.time() - start_time
+        logger.info(
+            f"Chat session created successfully: user_id={user_id}, "
+            f"response_time={response_time:.3f}s"
+        )
+
+        return ChatSessionResponse(client_secret=session.client_secret.value)
+
+    except HTTPException as e:
+        response_time = time.time() - start_time
+        logger.warning(
+            f"Chat session creation failed: user_id={user_id}, "
+            f"status_code={e.status_code}, "
+            f"detail={e.detail}, "
+            f"response_time={response_time:.3f}s"
+        )
+        raise
+
+    except Exception as e:
+        response_time = time.time() - start_time
+        error_type = type(e).__name__
+
+        logger.error(
+            f"Chat session creation error: user_id={user_id}, "
+            f"error_type={error_type}, "
+            f"error_message={str(e)}, "
+            f"response_time={response_time:.3f}s"
+        )
+        logger.error(f"Stack trace:\n{traceback.format_exc()}")
+
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Failed to create chat session"
+        )
+
+
+@router.post(
+    "/chatkit",
+    summary="ChatKit endpoint for React frontend",
+    description="""
+    ChatKit protocol endpoint that handles chat interactions from ChatKit React frontend.
+
+    **Authentication:**
+    - Requires valid JWT token in Authorization header (Bearer token)
+    - Extracts user_id from JWT token
+
+    **Returns:**
+    - Streaming response with ChatKit protocol events
+    - Or JSON response for non-streaming requests
+
+    **Usage:**
+    This endpoint is used by the ChatKit React component via useChatKit hook.
+    """,
+    tags=["Chat"]
+)
+async def chatkit_endpoint(
+    request: Request,
+    session: AsyncSession = Depends(get_session)
+):
+    """
+    ChatKit protocol endpoint.
+
+    Processes ChatKit requests from the React frontend and returns
+    streaming responses using the ChatKit protocol.
+
+    Args:
+        request: FastAPI request object
+        session: Database session
+
+    Returns:
+        StreamingResponse or JSON Response
+    """
+    start_time = time.time()
+
+    try:
+        # Extract JWT token and verify authentication
+        jwt_token = get_jwt_token(request)
+
+        # Get authenticated user_id from request state (set by JWT middleware)
+        user_id = getattr(request.state, "user_id", None)
+
+        if not user_id:
+            raise HTTPException(
+                status_code=status.HTTP_401_UNAUTHORIZED,
+                detail="User not authenticated"
+            )
+
+        logger.info(f"ChatKit request from user: {user_id}")
+
+        # Create request context with user info and session
+        context = RequestContext(
+            user_id=str(user_id),
+            jwt_token=jwt_token,
+            session=session
+        )
+
+        # Process request through ChatKit server
+        result = await chatkit_server.process(await request.body(), context)
+
+        response_time = time.time() - start_time
+        logger.info(f"ChatKit request processed: user_id={user_id}, response_time={response_time:.3f}s")
+
+        # Return appropriate response type
+        if isinstance(result, StreamingResult):
+            return StreamingResult(result)
+
+        return Response(content=result.json)
+
+    except HTTPException as e:
+        response_time = time.time() - start_time
+        logger.warning(
+            f"ChatKit request failed: status_code={e.status_code}, "
+            f"detail={e.detail}, response_time={response_time:.3f}s"
+        )
+        raise
+
+    except Exception as e:
+        response_time = time.time() - start_time
+        logger.error(
+            f"ChatKit endpoint error: error_type={type(e).__name__}, "
+            f"error_message={str(e)}, response_time={response_time:.3f}s"
+        )
+        logger.error(f"Stack trace:\n{traceback.format_exc()}")
+
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="An error occurred processing your chat request"
         )

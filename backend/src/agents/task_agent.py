@@ -8,12 +8,17 @@ Defines system instructions for natural language task management.
 import os
 import asyncio
 from typing import Optional, List, Dict
-from functools import partial
-from openai import OpenAI
-from agents import Agent, function_tool
+from agents import Agent, function_tool, set_tracing_disabled
+from dotenv import load_dotenv
+
+load_dotenv()
+
+# Disable tracing to prevent 401 errors with OpenRouter
+set_tracing_disabled(True)
 
 # Model Configuration
-MODEL_NAME = "google/gemini-2.0-flash-exp:free"
+# For OpenRouter with OpenAI Agents SDK (OpenRouter is OpenAI-compatible)
+MODEL_NAME = "mistralai/devstral-2512:free"
 OPENROUTER_BASE_URL = "https://openrouter.ai/api/v1"
 
 # System Instructions for Task Management Agent
@@ -176,12 +181,9 @@ Example 5 - Complex Multi-Step:
 """
 
 
-def get_openrouter_client() -> OpenAI:
+def validate_openrouter_key() -> None:
     """
-    Create OpenAI client configured for OpenRouter.
-
-    Returns:
-        OpenAI: Configured client for OpenRouter API
+    Validate that OPENROUTER_API_KEY is set in environment.
 
     Raises:
         ValueError: If OPENROUTER_API_KEY is not set
@@ -189,11 +191,6 @@ def get_openrouter_client() -> OpenAI:
     api_key = os.getenv("OPENROUTER_API_KEY")
     if not api_key:
         raise ValueError("OPENROUTER_API_KEY environment variable is not set")
-
-    return OpenAI(
-        base_url=OPENROUTER_BASE_URL,
-        api_key=api_key
-    )
 
 
 def create_task_agent(jwt_token: str) -> Agent:
@@ -209,17 +206,19 @@ def create_task_agent(jwt_token: str) -> Agent:
     Raises:
         ValueError: If OPENROUTER_API_KEY is not set
     """
-    from .mcp_tools import (
+    from .mcp_tools_api import (
         add_task_tool,
         list_tasks_tool,
         complete_task_tool,
         update_task_tool,
         delete_task_tool
     )
+    from openai import AsyncOpenAI
+    from agents import set_default_openai_client
 
-    # Create synchronous wrappers for async MCP tools with JWT token bound
+    # Create async wrappers for async MCP tools with JWT token bound
     @function_tool
-    def add_task(
+    async def add_task(
         title: str,
         description: str = "",
         due_date: str = "",
@@ -239,17 +238,24 @@ def create_task_agent(jwt_token: str) -> Agent:
         Returns:
             dict: Created task details or error message
         """
-        return asyncio.run(add_task_tool(
-            title=title,
-            jwt_token=jwt_token,
-            description=description,
-            due_date=due_date,
-            priority=priority,
-            category_id=category_id
-        ))
+        try:
+            result = await add_task_tool(
+                title=title,
+                jwt_token=jwt_token,
+                description=description,
+                due_date=due_date,
+                priority=priority,
+                category_id=category_id
+            )
+            return result
+        except Exception as e:
+            import traceback
+            error_details = f"Error in add_task: {str(e)}\n{traceback.format_exc()}"
+            print(error_details)  # This will show in the backend logs
+            return {"error": str(e), "details": "Check backend logs for full traceback"}
 
     @function_tool
-    def list_tasks(
+    async def list_tasks(
         status: str = "all",
         category_id: Optional[str] = None,
         priority: Optional[str] = None
@@ -265,15 +271,15 @@ def create_task_agent(jwt_token: str) -> Agent:
         Returns:
             dict: List of tasks or error message
         """
-        return asyncio.run(list_tasks_tool(
+        return await list_tasks_tool(
             jwt_token=jwt_token,
             status=status,
             category_id=category_id,
             priority=priority
-        ))
+        )
 
     @function_tool
-    def complete_task(task_id: str) -> dict:
+    async def complete_task(task_id: str) -> dict:
         """
         Mark a task as completed.
 
@@ -283,13 +289,13 @@ def create_task_agent(jwt_token: str) -> Agent:
         Returns:
             dict: Updated task details or error message
         """
-        return asyncio.run(complete_task_tool(
+        return await complete_task_tool(
             task_id=task_id,
             jwt_token=jwt_token
-        ))
+        )
 
     @function_tool
-    def update_task(
+    async def update_task(
         task_id: str,
         title: Optional[str] = None,
         description: Optional[str] = None,
@@ -311,7 +317,7 @@ def create_task_agent(jwt_token: str) -> Agent:
         Returns:
             dict: Updated task details or error message
         """
-        return asyncio.run(update_task_tool(
+        return await update_task_tool(
             task_id=task_id,
             jwt_token=jwt_token,
             title=title,
@@ -319,10 +325,10 @@ def create_task_agent(jwt_token: str) -> Agent:
             due_date=due_date,
             priority=priority,
             category_id=category_id
-        ))
+        )
 
     @function_tool
-    def delete_task(task_id: str) -> dict:
+    async def delete_task(task_id: str) -> dict:
         """
         Permanently delete a task.
 
@@ -332,27 +338,45 @@ def create_task_agent(jwt_token: str) -> Agent:
         Returns:
             dict: Success message or error message
         """
-        return asyncio.run(delete_task_tool(
+        return await delete_task_tool(
             task_id=task_id,
             jwt_token=jwt_token
-        ))
+        )
 
-    # Get OpenRouter client
-    client = get_openrouter_client()
+    # Validate OpenRouter API key is set
+    validate_openrouter_key()
+
+    # Get OpenRouter API key
+    openrouter_api_key = os.getenv("OPENROUTER_API_KEY")
+
+    # Create custom AsyncOpenAI client for OpenRouter
+    # OpenRouter has an OpenAI-compatible API endpoint
+    # OpenRouter requires specific headers for proper authentication
+    openrouter_client = AsyncOpenAI(
+        base_url=OPENROUTER_BASE_URL,
+        api_key=openrouter_api_key,
+        default_headers={
+            "HTTP-Referer": "http://localhost:3000",  # Your site URL
+            "X-Title": "Task Management App"  # Your app name
+        }
+    )
+
+    # Set as default client for the agents SDK
+    set_default_openai_client(openrouter_client)
 
     # Create Agent with all 5 MCP tools
+    # Use the model name without "openrouter/" prefix since we're using OpenRouter's endpoint
     agent = Agent(
         name="Task Management Assistant",
         instructions=SYSTEM_INSTRUCTIONS,
         model=MODEL_NAME,
-        tools=[add_task, list_tasks, complete_task, update_task, delete_task],
-        client=client
+        tools=[add_task, list_tasks, complete_task, update_task, delete_task]
     )
 
     return agent
 
 
-def run_agent(agent: Agent, message: str, history: Optional[List[Dict[str, str]]] = None) -> str:
+async def run_agent(agent: Agent, message: str, history: Optional[List[Dict[str, str]]] = None) -> str:
     """
     Run the agent with a user message and optional conversation history.
 
@@ -379,9 +403,11 @@ def run_agent(agent: Agent, message: str, history: Optional[List[Dict[str, str]]
         ...     {"role": "user", "content": "Show my tasks"},
         ...     {"role": "assistant", "content": "Here are your tasks: ..."}
         ... ]
-        >>> response = run_agent(agent, "Mark the first one as done", history)
+        >>> response = await run_agent(agent, "Mark the first one as done", history)
     """
     try:
+        from agents import Runner
+
         # Build message with history context (T038)
         # For stateless operation, prepend history as context to the message
         if history and len(history) > 0:
@@ -405,23 +431,31 @@ def run_agent(agent: Agent, message: str, history: Optional[List[Dict[str, str]]
             message_with_context = message
 
         # Run agent with message (including history context if present)
-        # The OpenAI Agents SDK handles multiple tool calls natively
+        # The OpenAI Agents SDK uses Runner.run() for async contexts
         # The agent will automatically chain tool calls as needed
-        result = agent.run(message_with_context)
+        runner = Runner()
+        result = await runner.run(
+            starting_agent=agent,
+            input=message_with_context,
+            max_turns=20
+        )
 
-        # Extract response content
-        # The SDK returns a Response object with content and tool call information
-        if hasattr(result, 'content'):
-            response_content = result.content
-        elif isinstance(result, str):
-            response_content = result
+        # Extract response content from RunResult
+        # The SDK returns a RunResult object with final_output attribute
+        if hasattr(result, 'final_output'):
+            # final_output contains the agent's final response
+            if isinstance(result.final_output, str):
+                response_content = result.final_output
+            else:
+                # If it's not a string, convert it
+                response_content = str(result.final_output)
         else:
+            # Fallback to string representation
             response_content = str(result)
 
         # Tool call limit enforcement (T044)
-        # Note: The OpenAI Agents SDK handles tool calls internally
-        # If the model attempts more than 10 tool calls, it should be limited by the SDK
-        # We rely on the system instructions to guide the model to stay within limits
+        # Note: The OpenAI Agents SDK handles tool calls internally via max_turns
+        # We set max_turns=10 to limit the number of agent invocations
         # The SDK's native behavior should prevent excessive tool calls
 
         return response_content

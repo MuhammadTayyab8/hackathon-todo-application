@@ -6,14 +6,29 @@ Each wrapper internally calls the MCP server via subprocess/stdio.
 """
 
 import os
+import sys
 import json
 from typing import Optional, Dict, Any
 from mcp import ClientSession, StdioServerParameters
 from mcp.client.stdio import stdio_client
+from dotenv import load_dotenv
+
+from jose import jwt, JWTError
+
+load_dotenv()
+
+# JWT Settings
+SECRET_KEY = os.getenv("BETTER_AUTH_SECRET")
+ALGORITHM = "HS256"
+
+
+# Get the Python executable from the virtual environment
+# This ensures the MCP server subprocess uses the same Python with all dependencies
+PYTHON_EXECUTABLE = sys.executable
 
 # MCP Server Configuration
 MCP_SERVER_PARAMS = StdioServerParameters(
-    command="python",
+    command=PYTHON_EXECUTABLE,  # Use the current Python executable (from venv)
     args=[os.path.join(os.path.dirname(__file__), "..", "..", "mcp_server_main.py")],
     env={
         "DATABASE_URL": os.getenv("DATABASE_URL", ""),
@@ -36,25 +51,38 @@ async def call_mcp_tool(tool_name: str, arguments: Dict[str, Any]) -> Dict[str, 
     Raises:
         Exception: If MCP client connection fails
     """
+    import traceback
     try:
+        print(f"[MCP] Attempting to call tool: {tool_name} with args: {arguments}")
         async with stdio_client(MCP_SERVER_PARAMS) as (read, write):
+            print(f"[MCP] Connected to MCP server")
             async with ClientSession(read, write) as session:
                 await session.initialize()
+                print(f"[MCP] Session initialized")
 
                 # Call MCP tool
                 result = await session.call_tool(tool_name, arguments=arguments)
+                print(f"[MCP] Tool call completed: {result}")
 
                 # Parse result
                 if result.isError:
-                    return {"error": result.content[0].text if result.content else "Unknown error"}
+                    error_msg = result.content[0].text if result.content else "Unknown error"
+                    print(f"[MCP] Tool returned error: {error_msg}")
+                    return {"error": error_msg}
 
                 # Return parsed JSON result
                 if result.content and len(result.content) > 0:
-                    return json.loads(result.content[0].text)
+                    parsed_result = json.loads(result.content[0].text)
+                    print(f"[MCP] Tool returned success: {parsed_result}")
+                    return parsed_result
 
+                print(f"[MCP] Tool returned empty response")
                 return {"error": "Empty response from MCP tool"}
 
     except Exception as e:
+        error_details = f"MCP tool call failed: {str(e)}\n{traceback.format_exc()}"
+        print(f"[MCP ERROR] {error_details}")
+        return {"error": f"MCP tool call failed: {str(e)}"}
         return {"error": f"MCP tool call failed: {str(e)}"}
 
 
@@ -70,7 +98,7 @@ async def add_task_tool(
     category_id: Optional[str] = None
 ) -> Dict[str, Any]:
     """
-    Create a new task.
+    Create a new task via direct API call (bypassing MCP stdio).
 
     Args:
         title: Task title (required)
@@ -83,17 +111,55 @@ async def add_task_tool(
     Returns:
         dict: Created task details or error message
     """
-    return await call_mcp_tool(
-        "add_task",
-        {
-            "title": title,
-            "description": description,
-            "due_date": due_date,
-            "priority": priority,
-            "category_id": category_id,
-            "jwt_token": jwt_token
-        }
-    )
+    import httpx
+    import traceback
+
+    try:
+        print(f"[API MODE] Calling add_task via HTTP API")
+        print(f"[API MODE] Title: {title}, Due: {due_date}, Priority: {priority}, Category: {category_id}")
+
+        # Decode JWT to get user_id (using jose.jwt which is already imported at top)
+        decoded = jwt.decode(jwt_token, SECRET_KEY, options={"verify_signature": False})
+        user_id = decoded.get("userId") or decoded.get("sub")
+        print(f"[API MODE] Extracted user_id: {user_id}")
+
+        # Call the FastAPI tasks endpoint directly
+        url = f"http://localhost:8001/api/{user_id}/tasks"
+        print(f"[API MODE] Calling: POST {url}")
+
+        async with httpx.AsyncClient() as client:
+            response = await client.post(
+                url,
+                json={
+                    "title": title,
+                    "description": description,
+                    "due_date": due_date if due_date else None,
+                    "priority": priority,
+                    "category_id": category_id
+                },
+                headers={
+                    "Authorization": f"Bearer {jwt_token}"
+                },
+                timeout=10.0
+            )
+
+            print(f"[API MODE] Response status: {response.status_code}")
+            print(f"[API MODE] Response body: {response.text}")
+
+            if response.status_code == 201:
+                result = response.json()
+                print(f"[API MODE] ✅ Task created successfully!")
+                print(f"[API MODE] Task ID: {result.get('id')}")
+                return {"success": True, "task": result, "message": "Task created successfully"}
+            else:
+                error_msg = response.text
+                print(f"[API MODE] ❌ Error: {error_msg}")
+                return {"error": f"API returned {response.status_code}: {error_msg}"}
+
+    except Exception as e:
+        error_details = f"API call failed: {str(e)}\n{traceback.format_exc()}"
+        print(f"[API MODE ERROR] ❌ {error_details}")
+        return {"error": f"API call failed: {str(e)}"}
 
 
 async def list_tasks_tool(

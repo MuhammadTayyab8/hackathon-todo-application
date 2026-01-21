@@ -1,3 +1,5 @@
+import sys
+import asyncio
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from src.db import init_db
@@ -6,6 +8,11 @@ from src.api.routes.tasks import router as tasks_router
 from src.api.routes.categories import router as categories_router
 from src.api.routes.chat import router as chat_router
 from src.api.middleware.jwt_middleware import JWTAuthMiddleware
+
+# Fix for Windows: Use ProactorEventLoop to support subprocess operations
+# This is required for MCP stdio client to work on Windows
+if sys.platform == 'win32':
+    asyncio.set_event_loop_policy(asyncio.WindowsProactorEventLoopPolicy())
 
 app = FastAPI(title="Todo App API")
 
@@ -17,7 +24,7 @@ app.add_middleware(JWTAuthMiddleware)
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:3000"],
+    allow_origins=["http://localhost:3000", "http://localhost:8001"],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],

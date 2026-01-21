@@ -28,6 +28,8 @@ export function ChatWidget({ className = '' }: ChatWidgetProps) {
     setHasError(false);
   };
 
+
+  // modal close
   const handleClose = () => {
     setIsOpen(false);
   };

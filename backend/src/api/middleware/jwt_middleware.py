@@ -20,6 +20,7 @@ PUBLIC_ROUTES = [
 
 class JWTAuthMiddleware(BaseHTTPMiddleware):
     async def dispatch(self, request: Request, call_next):
+        print("=======================", {self, request, call_next}, "==========================")
         # Allow OPTIONS requests unconditionally so CORS middleware can handle them
         print(request.url.path, "request.url.path")
 

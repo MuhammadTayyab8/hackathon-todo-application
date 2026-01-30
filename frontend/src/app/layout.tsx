@@ -36,7 +36,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en" className={`${spaceGrotesk.variable} ${roboto.variable} ${merriweather.variable}`}>
+    <html lang="en" suppressHydrationWarning className={`${spaceGrotesk.variable} ${roboto.variable} ${merriweather.variable}`}>
       <body className="font-body antialiased">
         <ThemeProvider>
           <ConditionalNavbar />

@@ -8,7 +8,7 @@ Defines system instructions for natural language task management.
 import os
 import asyncio
 from typing import Optional, List, Dict
-from agents import Agent, function_tool, set_tracing_disabled
+from agents import Agent, function_tool, set_tracing_disabled, RunConfig, AsyncOpenAI, OpenAIChatCompletionsModel
 from dotenv import load_dotenv
 
 load_dotenv()
@@ -19,8 +19,12 @@ set_tracing_disabled(True)
 # Model Configuration
 # For OpenRouter with OpenAI Agents SDK (OpenRouter is OpenAI-compatible)
 # Using a free, reliable model that works with OpenRouter
-MODEL_NAME = "google/gemini-2.0-flash-exp:free"
-OPENROUTER_BASE_URL = "https://openrouter.ai/api/v1"
+# MODEL_NAME = "openai/gpt-oss-20b:free"
+MODEL_NAME = "gemini-2.5-flash"
+
+# OPENROUTER_BASE_URL = "https://openrouter.ai/api/v1"
+OPENROUTER_BASE_URL = "https://generativelanguage.googleapis.com/v1beta/openai/"
+
 
 # System Instructions for Task Management Agent
 SYSTEM_INSTRUCTIONS = """You are a helpful task management assistant. Your role is to help users manage their tasks through natural conversation.
@@ -182,16 +186,45 @@ Example 5 - Complex Multi-Step:
 """
 
 
-def validate_openrouter_key() -> None:
-    """
-    Validate that OPENROUTER_API_KEY is set in environment.
 
-    Raises:
-        ValueError: If OPENROUTER_API_KEY is not set
-    """
-    api_key = os.getenv("OPENROUTER_API_KEY")
-    if not api_key:
-        raise ValueError("OPENROUTER_API_KEY environment variable is not set")
+
+gemini_api_key = os.getenv("GEMINI_API_KEY")
+
+if not gemini_api_key:
+    raise ValueError("API key is not defined.")
+
+
+# step: 1 provider
+provider = AsyncOpenAI(
+    api_key=gemini_api_key,
+    base_url="https://generativelanguage.googleapis.com/v1beta/openai/"
+) 
+
+# Step: 2 Model
+model = OpenAIChatCompletionsModel(
+    openai_client=provider,
+    model="gemini-2.5-flash"
+)
+
+# Step: 3 Config
+run_config = RunConfig(
+    model_provider=provider,
+    model=model,
+    tracing_disabled=True,
+)
+
+
+
+# def validate_openrouter_key() -> None:
+#     """
+#     Validate that OPENROUTER_API_KEY is set in environment.
+
+#     Raises:
+#         ValueError: If OPENROUTER_API_KEY is not set
+#     """
+#     api_key = os.getenv("OPENROUTER_API_KEY")
+#     if not api_key:
+#         raise ValueError("OPENROUTER_API_KEY environment variable is not set")
 
 
 def create_task_agent(jwt_token: str) -> Agent:
@@ -345,32 +378,34 @@ def create_task_agent(jwt_token: str) -> Agent:
         )
 
     # Validate OpenRouter API key is set
-    validate_openrouter_key()
+    # validate_openrouter_key()
 
     # Get OpenRouter API key
-    openrouter_api_key = os.getenv("OPENROUTER_API_KEY")
+    # openrouter_api_key = os.getenv("OPENROUTER_API_KEY")
+    openrouter_api_key = os.getenv("GEMINI_API_KEY")
+
 
     # Create custom AsyncOpenAI client for OpenRouter
     # OpenRouter has an OpenAI-compatible API endpoint
     # OpenRouter requires specific headers for proper authentication
-    openrouter_client = AsyncOpenAI(
-        base_url=OPENROUTER_BASE_URL,
-        api_key=openrouter_api_key,
-        default_headers={
-            "HTTP-Referer": "http://localhost:3000",  # Your site URL
-            "X-Title": "Task Management App"  # Your app name
-        }
-    )
+    # openrouter_client = AsyncOpenAI(
+    #     base_url=OPENROUTER_BASE_URL,
+    #     api_key=openrouter_api_key,
+    #     default_headers={
+    #         "HTTP-Referer": "http://localhost:3000",  # Your site URL
+    #         "X-Title": "Task Management App"  # Your app name
+    #     }
+    # )
 
     # Set as default client for the agents SDK
-    set_default_openai_client(openrouter_client)
+    # set_default_openai_client(openrouter_client)
 
     # Create Agent with all 5 MCP tools
     # Use the model name without "openrouter/" prefix since we're using OpenRouter's endpoint
     agent = Agent(
         name="Task Management Assistant",
         instructions=SYSTEM_INSTRUCTIONS,
-        model=MODEL_NAME,
+        # model=MODEL_NAME,
         tools=[add_task, list_tasks, complete_task, update_task, delete_task]
     )
 
@@ -438,6 +473,7 @@ async def run_agent(agent: Agent, message: str, history: Optional[List[Dict[str,
         result = await runner.run(
             starting_agent=agent,
             input=message_with_context,
+            run_config=run_config,
             max_turns=20
         )
 

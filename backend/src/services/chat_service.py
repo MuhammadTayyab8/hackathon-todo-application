@@ -6,6 +6,7 @@ Provides CRUD functions for chat functionality.
 """
 
 import logging
+import os
 import time
 import traceback
 from datetime import datetime
@@ -19,27 +20,45 @@ from ..models.conversation import Conversation
 from ..models.message import Message, MessageRole
 import re
 
-# Configure logging (T047)
+# ========================
+# Logging Configuration
+# ========================
+
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.INFO)
 
-# Create logs directory handler
-log_file_handler = logging.FileHandler("D:\\Tayyab\\AI-Hackathon\\hackathon2-todo-app\\backend\\logs\\chat_service.log")
+# Base directory (backend/)
+BASE_DIR = os.path.abspath(
+    os.path.join(os.path.dirname(__file__), "../../..")
+)
+
+# Logs directory path
+LOG_DIR = os.path.join(BASE_DIR, "logs")
+
+# gar folder nahi hai → bana do
+os.makedirs(LOG_DIR, exist_ok=True)
+
+# log file path
+LOG_FILE_PATH = os.path.join(LOG_DIR, "chat_service.log")
+
+# File handler
+log_file_handler = logging.FileHandler(LOG_FILE_PATH, encoding="utf-8")
 log_file_handler.setLevel(logging.INFO)
 
-# Create console handler
+# Console handler
 console_handler = logging.StreamHandler()
 console_handler.setLevel(logging.INFO)
 
-# Create formatter
+# Formatter
 formatter = logging.Formatter(
-    '%(asctime)s - %(name)s - %(levelname)s - %(message)s',
-    datefmt='%Y-%m-%d %H:%M:%S'
+    "%(asctime)s - %(name)s - %(levelname)s - %(message)s",
+    datefmt="%Y-%m-%d %H:%M:%S"
 )
+
 log_file_handler.setFormatter(formatter)
 console_handler.setFormatter(formatter)
 
-# Add handlers if not already added
+# Add handlers (duplicate se bachne ke liye)
 if not logger.handlers:
     logger.addHandler(log_file_handler)
     logger.addHandler(console_handler)

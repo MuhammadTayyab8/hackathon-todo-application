@@ -29,10 +29,15 @@ async def add_task_tool(
         print(f"[API MODE] add_task: {title}, due: {due_date}, priority: {priority}")
 
         # Decode JWT to get user_id
-        decoded = jwt.decode(jwt_token, key="", options={"verify_signature": False})
-        user_id = decoded.get("userId") or decoded.get("sub")
+        try:
+            decoded = jwt.decode(jwt_token, key="", options={"verify_signature": False})
+            user_id = decoded.get("userId") or decoded.get("sub")
+            print(f"[API MODE] Decoded user_id: {user_id}")
+        except Exception as jwt_error:
+            print(f"[API MODE] JWT decode error: {jwt_error}")
+            return {"error": f"JWT decode failed: {str(jwt_error)}"}
 
-        url = f"http://localhost:8001/api/{user_id}/tasks"
+        url = f"http://localhost:8000/api/{user_id}/tasks"
         async with httpx.AsyncClient() as client:
             response = await client.post(
                 url,
@@ -41,7 +46,7 @@ async def add_task_tool(
                     "description": description,
                     "due_date": due_date if due_date else None,
                     "priority": priority,
-                    "category_id": category_id
+                    "category_id": category_id or 1
                 },
                 headers={"Authorization": f"Bearer {jwt_token}"},
                 timeout=10.0
@@ -77,7 +82,7 @@ async def list_tasks_tool(
         decoded = jwt.decode(jwt_token, key="", options={"verify_signature": False})
         user_id = decoded.get("userId") or decoded.get("sub")
 
-        url = f"http://localhost:8001/api/{user_id}/tasks"
+        url = f"http://localhost:8000/api/{user_id}/tasks"
         async with httpx.AsyncClient() as client:
             response = await client.get(
                 url,
@@ -111,7 +116,7 @@ async def complete_task_tool(
         decoded = jwt.decode(jwt_token, key="", options={"verify_signature": False})
         user_id = decoded.get("userId") or decoded.get("sub")
 
-        url = f"http://localhost:8001/api/{user_id}/tasks/{task_id}/complete"
+        url = f"http://localhost:8000/api/{user_id}/tasks/{task_id}/complete"
         async with httpx.AsyncClient() as client:
             response = await client.patch(
                 url,
@@ -163,7 +168,7 @@ async def update_task_tool(
         if category_id is not None:
             update_data["category_id"] = category_id
 
-        url = f"http://localhost:8001/api/{user_id}/tasks/{task_id}"
+        url = f"http://localhost:8000/api/{user_id}/tasks/{task_id}"
         async with httpx.AsyncClient() as client:
             response = await client.put(
                 url,
@@ -198,7 +203,7 @@ async def delete_task_tool(
         decoded = jwt.decode(jwt_token, key="", options={"verify_signature": False})
         user_id = decoded.get("userId") or decoded.get("sub")
 
-        url = f"http://localhost:8001/api/{user_id}/tasks/{task_id}"
+        url = f"http://localhost:8000/api/{user_id}/tasks/{task_id}"
         async with httpx.AsyncClient() as client:
             response = await client.delete(
                 url,

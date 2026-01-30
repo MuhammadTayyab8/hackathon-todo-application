@@ -72,6 +72,7 @@ async def handle_list_tools() -> list[types.Tool]:
     Returns:
         List of Tool objects with schemas
     """
+    print("Listing MCP tools...")
     return [
         schemas.get_add_task_tool(),
         schemas.get_list_tasks_tool(),
@@ -170,3 +171,10 @@ async def run_server():
         if db_engine is not None:
             await db_engine.dispose()
             print("Database engine disposed", flush=True)
+
+
+
+if __name__ == "__main__":
+    import asyncio
+    print("Starting MCP server...")
+    asyncio.run(run_server())

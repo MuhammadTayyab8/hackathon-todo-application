@@ -11,6 +11,8 @@ import uuid
 from typing import Any, Dict, Optional
 from jose import jwt, JWTError
 import mcp.types as types
+from dotenv import load_dotenv
+load_dotenv()
 
 
 # JWT Settings (reuse from existing auth_service.py)

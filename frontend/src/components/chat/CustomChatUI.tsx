@@ -22,7 +22,7 @@ interface CustomChatUIProps {
   className?: string;
 }
 
-const API_BASE = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8001';
+const API_BASE = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000';
 
 export function CustomChatUI({ className = '' }: CustomChatUIProps) {
   const { user, isAuthenticated } = useAuth();
@@ -199,14 +199,14 @@ export function CustomChatUI({ className = '' }: CustomChatUIProps) {
             <div
               className={`max-w-[80%] rounded-lg px-4 py-2 ${
                 message.role === 'user'
-                  ? 'bg-primaty/20 text-white'
+                  ? 'bg-primary/20 text-secondary'
                   : 'bg-gray-100 text-gray-900'
               }`}
             >
               <p className="text-sm whitespace-pre-wrap">{message.content}</p>
               <p
                 className={`text-xs mt-1 ${
-                  message.role === 'user' ? 'text-blue-100' : 'text-gray-500'
+                  message.role === 'user' ? 'text-secondary/50' : 'text-gray-500'
                 }`}
               >
                 {message.timestamp.toLocaleTimeString([], {

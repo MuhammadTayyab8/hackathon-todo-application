@@ -124,7 +124,7 @@ async def add_task_tool(
         print(f"[API MODE] Extracted user_id: {user_id}")
 
         # Call the FastAPI tasks endpoint directly
-        url = f"http://localhost:8001/api/{user_id}/tasks"
+        url = f"http://localhost:8000/api/{user_id}/tasks"
         print(f"[API MODE] Calling: POST {url}")
 
         async with httpx.AsyncClient() as client:

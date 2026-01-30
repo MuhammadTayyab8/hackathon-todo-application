@@ -28,25 +28,31 @@ import os
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.INFO)
 
-# Create logs directory handler
-log_file_handler = logging.FileHandler("D:\\Tayyab\\AI-Hackathon\\hackathon2-todo-app\\backend\\logs\\chat_routes.log")
-log_file_handler.setLevel(logging.INFO)
-
-# Create console handler
-console_handler = logging.StreamHandler()
-console_handler.setLevel(logging.INFO)
-
-# Create formatter
-formatter = logging.Formatter(
-    '%(asctime)s - %(name)s - %(levelname)s - %(message)s',
-    datefmt='%Y-%m-%d %H:%M:%S'
+# backend directory
+BASE_DIR = os.path.abspath(
+    os.path.join(os.path.dirname(__file__), "../../..")
 )
-log_file_handler.setFormatter(formatter)
+
+# logs directory
+LOG_DIR = os.path.join(BASE_DIR, "logs")
+os.makedirs(LOG_DIR, exist_ok=True)   # 👈 yahin folder banega
+
+LOG_FILE = os.path.join(LOG_DIR, "chat_routes.log")
+
+file_handler = logging.FileHandler(LOG_FILE, encoding="utf-8")
+console_handler = logging.StreamHandler()
+
+formatter = logging.Formatter(
+    "%(asctime)s - %(name)s - %(levelname)s - %(message)s",
+    "%Y-%m-%d %H:%M:%S"
+)
+
+file_handler.setFormatter(formatter)
 console_handler.setFormatter(formatter)
 
-# Add handlers if not already added
+# duplicate handlers se bachao (uvicorn reload)
 if not logger.handlers:
-    logger.addHandler(log_file_handler)
+    logger.addHandler(file_handler)
     logger.addHandler(console_handler)
 
 # T049: Rate limiting configuration (60 requests per minute per user)

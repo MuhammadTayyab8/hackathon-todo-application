@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { useRouter, useSearchParams } from 'next/navigation'
+import { useRouter } from 'next/navigation'
 import { api, type Task, type User } from '@/lib/api'
 import { Sidebar } from '@/components/dashboard/Sidebar'
 import { KPICard } from '@/components/dashboard/KPICard'
@@ -13,7 +13,6 @@ import { CheckSquare, Clock, CheckCircle2, Search, Menu } from 'lucide-react'
 
 export default function TasksPage() {
   const router = useRouter()
-  const searchParams = useSearchParams()
   const [user, setUser] = useState<User | null>(null)
   const [tasks, setTasks] = useState<Task[]>([])
   const [loading, setLoading] = useState(true)

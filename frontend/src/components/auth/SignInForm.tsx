@@ -42,6 +42,7 @@ export default function SignInForm() {
       }
 
       router.push("/")
+      window.location.reload();
     } catch (err: any) {
       setError(err.message || "Invalid email or password.")
     } finally {

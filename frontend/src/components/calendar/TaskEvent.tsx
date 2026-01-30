@@ -1,7 +1,8 @@
 "use client"
 
 import { Task } from "@/lib/api"
-import { getTaskUrgencyColor, getTaskUrgencyColorFromDueDate } from "../../../lib/utils/task-colors"
+import { getTaskUrgencyColor, getTaskUrgencyColorFromDueDate } from "@/lib/date-helpers"
+// import { getTaskUrgencyColor, getTaskUrgencyColorFromDueDate } from "../../../lib/utils/task-colors"
 
 interface TaskEventProps {
   task: Task

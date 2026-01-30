@@ -59,6 +59,7 @@ export default function SignUpForm() {
       }
 
       router.push("/")
+      window.location.reload();
     } catch (err: any) {
       setError(err.message || "An error occurred during sign up.")
     } finally {

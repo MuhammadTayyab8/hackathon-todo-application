@@ -29,8 +29,8 @@ async def signup(user_data: UserCreate, response: Response, session: AsyncSessio
             value=token,
             max_age=604800,  # 7 days in seconds
             httponly=True,  # Prevent JavaScript access (XSS protection)
-            secure=False,  # Set to True in production with HTTPS
-            samesite="lax",  # CSRF protection
+            secure=True,  # Set to True in production with HTTPS
+            samesite="none",  # CSRF protection
             path="/"  # Available to all routes
         )
 
@@ -72,8 +72,8 @@ async def signin(credentials: UserSignIn, response: Response, session: AsyncSess
         value=token,
         max_age=604800,  # 7 days in seconds
         httponly=True,  # Prevent JavaScript access (XSS protection)
-        secure=False,  # Set to True in production with HTTPS
-        samesite="lax",  # CSRF protection
+        secure=True,  # Set to True in production with HTTPS  False in locl
+        samesite="none",  # CSRF protection  none in local
         path="/"  # Available to all routes
     )
 

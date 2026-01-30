@@ -24,6 +24,8 @@ uv.lock
 .env
 .env.*
 !.env.example
+# env files (can opt-in for committing if needed)
+.env*
 
 # =========================
 # Logs

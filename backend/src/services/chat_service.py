@@ -27,42 +27,35 @@ import re
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.INFO)
 
-# Base directory (backend/)
-BASE_DIR = os.path.abspath(
-    os.path.join(os.path.dirname(__file__), "../../..")
-)
-
-# Logs directory path
-LOG_DIR = os.path.join(BASE_DIR, "logs")
-
-# gar folder nahi hai → bana do
-os.makedirs(LOG_DIR, exist_ok=True)
-
-# log file path
-LOG_FILE_PATH = os.path.join(LOG_DIR, "chat_service.log")
-
-# File handler
-log_file_handler = logging.FileHandler(LOG_FILE_PATH, encoding="utf-8")
-log_file_handler.setLevel(logging.INFO)
-
-# Console handler
+# Console handler (always safe)
 console_handler = logging.StreamHandler()
 console_handler.setLevel(logging.INFO)
-
-# Formatter
 formatter = logging.Formatter(
     "%(asctime)s - %(name)s - %(levelname)s - %(message)s",
     datefmt="%Y-%m-%d %H:%M:%S"
 )
-
-log_file_handler.setFormatter(formatter)
 console_handler.setFormatter(formatter)
 
-# Add handlers (duplicate se bachne ke liye)
+# Add console handler if no handlers exist yet (prevent duplicates)
 if not logger.handlers:
-    logger.addHandler(log_file_handler)
     logger.addHandler(console_handler)
 
+# Optional file logging (try/catch to avoid deployment crash)
+try:
+    BASE_DIR = os.path.abspath(os.path.join(os.path.dirname(__file__), "../../.."))
+    LOG_DIR = os.path.join(BASE_DIR, "logs")
+    os.makedirs(LOG_DIR, exist_ok=True)
+
+    LOG_FILE_PATH = os.path.join(LOG_DIR, "chat_service.log")
+    file_handler = logging.FileHandler(LOG_FILE_PATH, encoding="utf-8")
+    file_handler.setLevel(logging.INFO)
+    file_handler.setFormatter(formatter)
+
+    logger.addHandler(file_handler)
+except Exception as e:
+    logger.warning(f"Could not create log file: {e}")
+
+    
 
 def generate_conversation_title(message: str) -> str:
     """

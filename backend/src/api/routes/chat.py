@@ -24,36 +24,32 @@ from chatkit.server import StreamingResult
 from openai import OpenAI
 import os
 
-# Configure logging (T048)
+# Configure logging safely for deployment
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.INFO)
 
-# backend directory
-BASE_DIR = os.path.abspath(
-    os.path.join(os.path.dirname(__file__), "../../..")
-)
-
-# logs directory
-LOG_DIR = os.path.join(BASE_DIR, "logs")
-os.makedirs(LOG_DIR, exist_ok=True)   # 👈 yahin folder banega
-
-LOG_FILE = os.path.join(LOG_DIR, "chat_routes.log")
-
-file_handler = logging.FileHandler(LOG_FILE, encoding="utf-8")
 console_handler = logging.StreamHandler()
-
 formatter = logging.Formatter(
     "%(asctime)s - %(name)s - %(levelname)s - %(message)s",
     "%Y-%m-%d %H:%M:%S"
 )
-
-file_handler.setFormatter(formatter)
 console_handler.setFormatter(formatter)
 
-# duplicate handlers se bachao (uvicorn reload)
+# prevent duplicate handlers
 if not logger.handlers:
-    logger.addHandler(file_handler)
     logger.addHandler(console_handler)
+
+# Optional: try to create file logging, but don't crash if it fails
+try:
+    BASE_DIR = os.path.abspath(os.path.join(os.path.dirname(__file__), "../../.."))
+    LOG_DIR = os.path.join(BASE_DIR, "logs")
+    os.makedirs(LOG_DIR, exist_ok=True)
+    LOG_FILE = os.path.join(LOG_DIR, "chat_routes.log")
+    file_handler = logging.FileHandler(LOG_FILE, encoding="utf-8")
+    file_handler.setFormatter(formatter)
+    logger.addHandler(file_handler)
+except Exception as e:
+    logger.warning(f"Could not create log file: {e}")
 
 # T049: Rate limiting configuration (60 requests per minute per user)
 limiter = Limiter(key_func=get_remote_address)

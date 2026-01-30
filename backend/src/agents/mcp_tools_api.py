@@ -12,6 +12,9 @@ from dotenv import load_dotenv
 
 load_dotenv()
 
+BACKEND_URL = os.getenv("BACKEND_URL", "http://localhost:8000")  # fallback if not set
+
+
 
 async def add_task_tool(
     title: str,
@@ -37,7 +40,7 @@ async def add_task_tool(
             print(f"[API MODE] JWT decode error: {jwt_error}")
             return {"error": f"JWT decode failed: {str(jwt_error)}"}
 
-        url = f"http://localhost:8000/api/{user_id}/tasks"
+        url = f"{BACKEND_URL}/api/{user_id}/tasks"
         async with httpx.AsyncClient() as client:
             response = await client.post(
                 url,
@@ -82,7 +85,7 @@ async def list_tasks_tool(
         decoded = jwt.decode(jwt_token, key="", options={"verify_signature": False})
         user_id = decoded.get("userId") or decoded.get("sub")
 
-        url = f"http://localhost:8000/api/{user_id}/tasks"
+        url = f"{BACKEND_URL}/api/{user_id}/tasks"
         async with httpx.AsyncClient() as client:
             response = await client.get(
                 url,
@@ -116,7 +119,7 @@ async def complete_task_tool(
         decoded = jwt.decode(jwt_token, key="", options={"verify_signature": False})
         user_id = decoded.get("userId") or decoded.get("sub")
 
-        url = f"http://localhost:8000/api/{user_id}/tasks/{task_id}/complete"
+        url = f"{BACKEND_URL}/api/{user_id}/tasks/{task_id}/complete"
         async with httpx.AsyncClient() as client:
             response = await client.patch(
                 url,
@@ -168,7 +171,7 @@ async def update_task_tool(
         if category_id is not None:
             update_data["category_id"] = category_id
 
-        url = f"http://localhost:8000/api/{user_id}/tasks/{task_id}"
+        url = f"{BACKEND_URL}/api/{user_id}/tasks/{task_id}"
         async with httpx.AsyncClient() as client:
             response = await client.put(
                 url,
@@ -203,7 +206,7 @@ async def delete_task_tool(
         decoded = jwt.decode(jwt_token, key="", options={"verify_signature": False})
         user_id = decoded.get("userId") or decoded.get("sub")
 
-        url = f"http://localhost:8000/api/{user_id}/tasks/{task_id}"
+        url = f"{BACKEND_URL}/api/{user_id}/tasks/{task_id}"
         async with httpx.AsyncClient() as client:
             response = await client.delete(
                 url,

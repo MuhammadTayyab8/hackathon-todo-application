@@ -14,8 +14,10 @@ from mcp.client.stdio import stdio_client
 from dotenv import load_dotenv
 
 from jose import jwt, JWTError
-
 load_dotenv()
+
+BACKEND_URL = os.getenv("BACKEND_URL", "http://localhost:8000")  # fallback if not set
+
 
 # JWT Settings
 SECRET_KEY = os.getenv("BETTER_AUTH_SECRET")
@@ -124,7 +126,7 @@ async def add_task_tool(
         print(f"[API MODE] Extracted user_id: {user_id}")
 
         # Call the FastAPI tasks endpoint directly
-        url = f"http://localhost:8000/api/{user_id}/tasks"
+        url = f"{BACKEND_URL}/api/{user_id}/tasks"
         print(f"[API MODE] Calling: POST {url}")
 
         async with httpx.AsyncClient() as client:

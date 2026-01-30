@@ -1,3 +1,4 @@
+import os
 import sys
 import asyncio
 from fastapi import FastAPI
@@ -8,6 +9,9 @@ from src.api.routes.tasks import router as tasks_router
 from src.api.routes.categories import router as categories_router
 from src.api.routes.chat import router as chat_router
 from src.api.middleware.jwt_middleware import JWTAuthMiddleware
+
+from dotenv import load_dotenv
+load_dotenv()
 
 # Fix for Windows: Use ProactorEventLoop to support subprocess operations
 # This is required for MCP stdio client to work on Windows
@@ -25,6 +29,7 @@ app.add_middleware(JWTAuthMiddleware)
 app.add_middleware(
     CORSMiddleware,
     allow_origins=[
+        os.getenv("FRONTEND_URL"),
         "http://localhost:3000",
         "http://localhost:3001",
         "http://localhost:8001",

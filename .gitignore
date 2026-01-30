@@ -124,3 +124,8 @@ ENV/
 env/
 PYTHON_env/
 .pytest_cache/
+
+
+# .env
+backend\.env
+frontend\.env.local

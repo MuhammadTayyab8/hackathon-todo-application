@@ -1,3 +1,4 @@
+import os
 from fastapi import APIRouter, Depends, HTTPException, status, Request, Response
 from fastapi.security import HTTPBearer
 from sqlmodel.ext.asyncio.session import AsyncSession
@@ -6,9 +7,14 @@ from src.models.user import UserCreate, UserRead, UserSignIn, AuthResponse, User
 from src.services.auth_service import create_user, create_jwt_token, authenticate_user
 from datetime import datetime, timedelta, timezone
 from sqlmodel import select
+from dotenv import load_dotenv
+
+load_dotenv()
 
 router = APIRouter()
 security = HTTPBearer()
+
+FRONTEND_DOMAIN = os.getenv("FRONTEND_URL")
 
 @router.options("/signup")
 async def options_signup():
@@ -31,6 +37,7 @@ async def signup(user_data: UserCreate, response: Response, session: AsyncSessio
             httponly=True,  # Prevent JavaScript access (XSS protection)
             secure=True,  # Set to True in production with HTTPS
             samesite="none",  # CSRF protection
+            domain=FRONTEND_DOMAIN,
             path="/"  # Available to all routes
         )
 
@@ -74,6 +81,7 @@ async def signin(credentials: UserSignIn, response: Response, session: AsyncSess
         httponly=True,  # Prevent JavaScript access (XSS protection)
         secure=True,  # Set to True in production with HTTPS  False in locl
         samesite="none",  # CSRF protection  none in local
+        domain=FRONTEND_DOMAIN,
         path="/"  # Available to all routes
     )
 
@@ -92,7 +100,8 @@ async def signout(response: Response):
     response.delete_cookie(
         key="auth_token",
         path="/",
-        samesite="lax"
+        samesite="lax",
+        domain=FRONTEND_DOMAIN,
     )
     return {"message": "Successfully signed out"}
 

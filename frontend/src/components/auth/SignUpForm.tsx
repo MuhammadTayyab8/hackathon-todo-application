@@ -56,10 +56,10 @@ export default function SignUpForm() {
 
       if (res.token) {
         localStorage.setItem("token", res.token)
+        window.location.reload();
       }
 
-      router.push("/")
-      window.location.reload();
+      // router.push("/")
     } catch (err: any) {
       setError(err.message || "An error occurred during sign up.")
     } finally {

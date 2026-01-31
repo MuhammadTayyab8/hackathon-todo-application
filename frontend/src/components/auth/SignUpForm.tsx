@@ -3,6 +3,7 @@
 import * as React from "react"
 import { useRouter } from "next/navigation"
 import { api } from "@/lib/api"
+import { setAuthCookie } from "@/lib/cookies"
 import { Button } from "@/components/ui/Button"
 import { Eye, EyeOff, Loader2, Check, X, ShieldCheck, Mail, User, Lock } from "lucide-react"
 
@@ -55,11 +56,15 @@ export default function SignUpForm() {
       })
 
       if (res.token) {
+        // Store token in localStorage for API requests
         localStorage.setItem("token", res.token)
-        window.location.reload();
-      }
 
-      // router.push("/")
+        // Set cookie on frontend domain for middleware
+        setAuthCookie(res.token)
+
+        // Redirect to dashboard
+        router.push("/dashboard")
+      }
     } catch (err: any) {
       setError(err.message || "An error occurred during sign up.")
     } finally {

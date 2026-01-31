@@ -3,6 +3,7 @@
 import * as React from "react"
 import { useRouter } from "next/navigation"
 import { api } from "@/lib/api"
+import { setAuthCookie } from "@/lib/cookies"
 import { Button } from "@/components/ui/Button"
 import { Eye, EyeOff, Loader2, KeyRound, Mail, Lock } from "lucide-react"
 
@@ -38,12 +39,16 @@ export default function SignInForm() {
       })
 
       if (res.token) {
+        // Store token in localStorage for API requests
         localStorage.setItem("token", res.token)
-        window.location.reload();
+
+        // Set cookie on frontend domain for middleware
+        setAuthCookie(res.token)
+
+        // Redirect to dashboard
+        router.push("/dashboard")
       }
-      
-      // router.push("/")
-      
+
     } catch (err: any) {
       setError(err.message || "Invalid email or password.")
     } finally {

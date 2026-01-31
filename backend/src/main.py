@@ -26,17 +26,25 @@ app = FastAPI(title="Todo App API")
 
 app.add_middleware(JWTAuthMiddleware)
 
+# Configure CORS origins
+FRONTEND_URL = os.getenv("FRONTEND_URL", "http://localhost:3000")
+allowed_origins = [
+    FRONTEND_URL,
+    "http://localhost:3000",
+    "http://localhost:3001",
+    "http://localhost:8001",
+]
+
+# Remove None values and duplicates
+allowed_origins = list(set(filter(None, allowed_origins)))
+
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=[
-        os.getenv("FRONTEND_URL"),
-        "http://localhost:3000",
-        "http://localhost:3001",
-        "http://localhost:8001",
-    ],
+    allow_origins=allowed_origins,
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
+    expose_headers=["*"],
 )
 
 app.include_router(auth_router, prefix="/api/auth", tags=["authentication"])

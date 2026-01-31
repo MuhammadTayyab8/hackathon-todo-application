@@ -8,13 +8,22 @@ from src.services.auth_service import create_user, create_jwt_token, authenticat
 from datetime import datetime, timedelta, timezone
 from sqlmodel import select
 from dotenv import load_dotenv
+from urllib.parse import urlparse
 
 load_dotenv()
 
 router = APIRouter()
 security = HTTPBearer()
 
-FRONTEND_DOMAIN = os.getenv("FRONTEND_URL")
+# Extract domain from FRONTEND_URL for cookie configuration
+FRONTEND_URL = os.getenv("FRONTEND_URL", "")
+FRONTEND_DOMAIN = None
+if FRONTEND_URL:
+    parsed = urlparse(FRONTEND_URL)
+    FRONTEND_DOMAIN = parsed.netloc if parsed.netloc else None
+
+# Determine if we're in production (HTTPS)
+IS_PRODUCTION = os.getenv("ENVIRONMENT", "development") == "production"
 
 @router.options("/signup")
 async def options_signup():
@@ -30,16 +39,22 @@ async def signup(user_data: UserCreate, response: Response, session: AsyncSessio
         expires_at = datetime.now(timezone.utc) + timedelta(days=7)
 
         # Set HTTP cookie with security flags
-        response.set_cookie(
-            key="auth_token",
-            value=token,
-            max_age=604800,  # 7 days in seconds
-            httponly=True,  # Prevent JavaScript access (XSS protection)
-            secure=True,  # Set to True in production with HTTPS
-            samesite="none",  # CSRF protection
-            domain=FRONTEND_DOMAIN,
-            path="/"  # Available to all routes
-        )
+        # For cross-domain cookies in production, don't set domain parameter
+        cookie_params = {
+            "key": "auth_token",
+            "value": token,
+            "max_age": 604800,  # 7 days in seconds
+            "httponly": True,  # Prevent JavaScript access (XSS protection)
+            "secure": IS_PRODUCTION,  # True in production with HTTPS
+            "samesite": "none" if IS_PRODUCTION else "lax",  # none for cross-domain in production
+            "path": "/"  # Available to all routes
+        }
+
+        # Only set domain if we're in local development with same domain
+        if not IS_PRODUCTION and FRONTEND_DOMAIN:
+            cookie_params["domain"] = FRONTEND_DOMAIN
+
+        response.set_cookie(**cookie_params)
 
         return AuthResponse(
             user=user,
@@ -74,16 +89,22 @@ async def signin(credentials: UserSignIn, response: Response, session: AsyncSess
     expires_at = datetime.now(timezone.utc) + timedelta(days=7)
 
     # Set HTTP cookie with security flags
-    response.set_cookie(
-        key="auth_token",
-        value=token,
-        max_age=604800,  # 7 days in seconds
-        httponly=True,  # Prevent JavaScript access (XSS protection)
-        secure=True,  # Set to True in production with HTTPS  False in locl
-        samesite="none",  # CSRF protection  none in local
-        domain=FRONTEND_DOMAIN,
-        path="/"  # Available to all routes
-    )
+    # For cross-domain cookies in production, don't set domain parameter
+    cookie_params = {
+        "key": "auth_token",
+        "value": token,
+        "max_age": 604800,  # 7 days in seconds
+        "httponly": True,  # Prevent JavaScript access (XSS protection)
+        "secure": IS_PRODUCTION,  # True in production with HTTPS
+        "samesite": "none" if IS_PRODUCTION else "lax",  # none for cross-domain in production
+        "path": "/"  # Available to all routes
+    }
+
+    # Only set domain if we're in local development with same domain
+    if not IS_PRODUCTION and FRONTEND_DOMAIN:
+        cookie_params["domain"] = FRONTEND_DOMAIN
+
+    response.set_cookie(**cookie_params)
 
     return AuthResponse(
         user=user,
@@ -97,12 +118,17 @@ async def signout(response: Response):
     Sign out endpoint.
     Clear the auth_token cookie.
     """
-    response.delete_cookie(
-        key="auth_token",
-        path="/",
-        samesite="lax",
-        domain=FRONTEND_DOMAIN,
-    )
+    cookie_params = {
+        "key": "auth_token",
+        "path": "/",
+        "samesite": "none" if IS_PRODUCTION else "lax",
+    }
+
+    # Only set domain if we're in local development with same domain
+    if not IS_PRODUCTION and FRONTEND_DOMAIN:
+        cookie_params["domain"] = FRONTEND_DOMAIN
+
+    response.delete_cookie(**cookie_params)
     return {"message": "Successfully signed out"}
 
 @router.get("/me", response_model=UserRead)

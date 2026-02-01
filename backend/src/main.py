@@ -58,4 +58,37 @@ async def on_startup():
 
 @app.get("/health")
 async def health_check():
-    return {"status": "healthy"}
+    """
+    Health check endpoint for container orchestration and monitoring.
+    Returns service status, timestamp, version, and database connectivity.
+    """
+    from datetime import datetime
+    from sqlalchemy import text
+    from fastapi.responses import JSONResponse
+
+    health_response = {
+        "status": "healthy",
+        "timestamp": datetime.utcnow().isoformat(),
+        "service": "todo-backend",
+        "version": "1.0.0",
+        "database": {
+            "connected": False,
+            "error": None
+        }
+    }
+
+    # Check database connectivity
+    try:
+        from src.db import engine
+        async with engine.connect() as conn:
+            await conn.execute(text("SELECT 1"))
+            health_response["database"]["connected"] = True
+    except Exception as e:
+        health_response["status"] = "unhealthy"
+        health_response["database"]["error"] = str(e)
+        return JSONResponse(
+            content=health_response,
+            status_code=503
+        )
+
+    return health_response

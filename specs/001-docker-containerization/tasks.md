@@ -61,8 +61,8 @@
 - [x] T012 [US1] Add application code copy to backend/Dockerfile (COPY src/ /app/src/)
 - [x] T013 [US1] Create non-root user 'appuser' in backend/Dockerfile (RUN useradd -m -u 1000 appuser, USER appuser)
 - [x] T014 [US1] Add EXPOSE 8000 and CMD to backend/Dockerfile (CMD ["uvicorn", "src.main:app", "--host", "0.0.0.0", "--port", "8000"])
-- [ ] T015 [US1] Test backend container build (docker build -t todo-backend:latest backend/)
-- [ ] T016 [US1] Test backend container run with environment variables (verify it starts and responds)
+- [ ] T015 [US1] Test backend container build (docker build -t todo-backend:latest backend/) **[BLOCKED: Docker network connectivity]**
+- [ ] T016 [US1] Test backend container run with environment variables (verify it starts and responds) **[BLOCKED: Docker network connectivity]**
 
 ### Frontend Container Implementation
 
@@ -72,15 +72,15 @@
 - [x] T020 [US1] Add Stage 2 (builder) to frontend/Dockerfile (COPY all files, RUN npm run build)
 - [x] T021 [US1] Add Stage 3 (runner) to frontend/Dockerfile (copy standalone output, create non-root user node)
 - [x] T022 [US1] Add EXPOSE 3000 and CMD to frontend/Dockerfile (CMD ["node", "server.js"])
-- [ ] T023 [US1] Test frontend container build (docker build -t todo-frontend:latest frontend/)
-- [ ] T024 [US1] Test frontend container run with environment variables (verify it starts and responds)
+- [ ] T023 [US1] Test frontend container build (docker build -t todo-frontend:latest frontend/) **[BLOCKED: Docker network connectivity]**
+- [ ] T024 [US1] Test frontend container run with environment variables (verify it starts and responds) **[BLOCKED: Docker network connectivity]**
 
 ### Integration Testing
 
-- [ ] T025 [US1] Test both containers running together with proper environment variables
-- [ ] T026 [US1] Verify frontend can communicate with backend API (test API calls work)
-- [ ] T027 [US1] Verify Todo application functions correctly in containerized environment
-- [ ] T028 [US1] Document container build and run commands in specs/001-docker-containerization/quickstart.md
+- [ ] T025 [US1] Test both containers running together with proper environment variables **[BLOCKED: Docker network connectivity]**
+- [ ] T026 [US1] Verify frontend can communicate with backend API (test API calls work) **[BLOCKED: Docker network connectivity]**
+- [ ] T027 [US1] Verify Todo application functions correctly in containerized environment **[BLOCKED: Docker network connectivity]**
+- [x] T028 [US1] Document container build and run commands in specs/001-docker-containerization/quickstart.md
 
 **Checkpoint**: At this point, both containers should build successfully and run locally with full application functionality
 
@@ -94,36 +94,36 @@
 
 ### Backend Health Check
 
-- [ ] T029 [US2] Check if backend health endpoint exists at /health in backend/src/main.py or backend/src/api/routes/
-- [ ] T030 [US2] If health endpoint doesn't exist, create GET /health endpoint in backend/src/main.py
-- [ ] T031 [US2] Implement health check response with JSON format (status, timestamp, service, version, database)
-- [ ] T032 [US2] Add database connectivity check to backend health endpoint (verify connection pool is active)
-- [ ] T033 [US2] Test backend health endpoint returns 200 OK when healthy (curl http://localhost:8000/health)
-- [ ] T034 [US2] Test backend health endpoint returns 503 when database is unavailable
+- [x] T029 [US2] Check if backend health endpoint exists at /health in backend/src/main.py or backend/src/api/routes/
+- [x] T030 [US2] If health endpoint doesn't exist, create GET /health endpoint in backend/src/main.py
+- [x] T031 [US2] Implement health check response with JSON format (status, timestamp, service, version, database)
+- [x] T032 [US2] Add database connectivity check to backend health endpoint (verify connection pool is active)
+- [ ] T033 [US2] Test backend health endpoint returns 200 OK when healthy (curl http://localhost:8000/health) **[BLOCKED: Docker network connectivity]**
+- [ ] T034 [US2] Test backend health endpoint returns 503 when database is unavailable **[BLOCKED: Docker network connectivity]**
 
 ### Frontend Health Check
 
-- [ ] T035 [P] [US2] Create frontend health check API route in frontend/src/app/health/route.ts
-- [ ] T036 [US2] Implement GET handler with JSON response (status, timestamp, service, version)
-- [ ] T037 [US2] Test frontend health endpoint returns 200 OK (curl http://localhost:3000/health)
+- [x] T035 [P] [US2] Create frontend health check API route in frontend/src/app/health/route.ts
+- [x] T036 [US2] Implement GET handler with JSON response (status, timestamp, service, version)
+- [ ] T037 [US2] Test frontend health endpoint returns 200 OK (curl http://localhost:3000/health) **[BLOCKED: Docker network connectivity]**
 
 ### Production Optimization
 
-- [ ] T038 [P] [US2] Measure backend container image size (docker images | grep todo-backend)
-- [ ] T039 [P] [US2] Measure frontend container image size (docker images | grep todo-frontend)
-- [ ] T040 [US2] Optimize backend Dockerfile if image size exceeds 300MB (clean apt cache, remove unnecessary files)
-- [ ] T041 [US2] Optimize frontend Dockerfile if image size exceeds 200MB (verify standalone mode, optimize layers)
-- [ ] T042 [P] [US2] Measure container startup times (docker run and time to health check response)
-- [ ] T043 [P] [US2] Measure container build times (time docker build commands)
-- [ ] T044 [US2] Add Docker labels to both Dockerfiles (version, created, revision, source)
-- [ ] T045 [US2] Test graceful shutdown with SIGTERM (docker stop and verify clean shutdown)
+- [ ] T038 [P] [US2] Measure backend container image size (docker images | grep todo-backend) **[BLOCKED: Docker network connectivity]**
+- [ ] T039 [P] [US2] Measure frontend container image size (docker images | grep todo-frontend) **[BLOCKED: Docker network connectivity]**
+- [ ] T040 [US2] Optimize backend Dockerfile if image size exceeds 300MB (clean apt cache, remove unnecessary files) **[BLOCKED: Pending T038]**
+- [ ] T041 [US2] Optimize frontend Dockerfile if image size exceeds 200MB (verify standalone mode, optimize layers) **[BLOCKED: Pending T039]**
+- [ ] T042 [P] [US2] Measure container startup times (docker run and time to health check response) **[BLOCKED: Docker network connectivity]**
+- [ ] T043 [P] [US2] Measure container build times (time docker build commands) **[BLOCKED: Docker network connectivity]**
+- [x] T044 [US2] Add Docker labels to both Dockerfiles (version, created, revision, source)
+- [ ] T045 [US2] Test graceful shutdown with SIGTERM (docker stop and verify clean shutdown) **[BLOCKED: Docker network connectivity]**
 
 ### Security Validation
 
-- [ ] T046 [P] [US2] Verify backend container runs as non-root user (docker exec todo-backend whoami)
-- [ ] T047 [P] [US2] Verify frontend container runs as non-root user (docker exec todo-frontend whoami)
-- [ ] T048 [P] [US2] Verify no secrets in Dockerfile or image layers (inspect image history)
-- [ ] T049 [US2] Document security best practices in specs/001-docker-containerization/quickstart.md
+- [ ] T046 [P] [US2] Verify backend container runs as non-root user (docker exec todo-backend whoami) **[BLOCKED: Docker network connectivity]**
+- [ ] T047 [P] [US2] Verify frontend container runs as non-root user (docker exec todo-frontend whoami) **[BLOCKED: Docker network connectivity]**
+- [ ] T048 [P] [US2] Verify no secrets in Dockerfile or image layers (inspect image history) **[BLOCKED: Docker network connectivity]**
+- [x] T049 [US2] Document security best practices in specs/001-docker-containerization/quickstart.md
 
 **Checkpoint**: At this point, containers should meet all production requirements (size, startup time, health checks, security)
 
@@ -139,10 +139,10 @@
 
 ### Documentation
 
-- [ ] T050 [P] [US3] Document container build commands for CI/CD in specs/001-docker-containerization/quickstart.md
-- [ ] T051 [P] [US3] Document container tagging strategy (latest, version, commit SHA) in specs/001-docker-containerization/quickstart.md
-- [ ] T052 [P] [US3] Document container registry push commands in specs/001-docker-containerization/quickstart.md
-- [ ] T053 [US3] Add CI/CD integration notes to specs/001-docker-containerization/quickstart.md (GitHub Actions, GitLab CI examples)
+- [x] T050 [P] [US3] Document container build commands for CI/CD in specs/001-docker-containerization/quickstart.md
+- [x] T051 [P] [US3] Document container tagging strategy (latest, version, commit SHA) in specs/001-docker-containerization/quickstart.md
+- [x] T052 [P] [US3] Document container registry push commands in specs/001-docker-containerization/quickstart.md
+- [x] T053 [US3] Add CI/CD integration notes to specs/001-docker-containerization/quickstart.md (GitHub Actions, GitLab CI examples)
 
 **Checkpoint**: CI/CD integration is documented for future implementation
 
@@ -152,13 +152,13 @@
 
 **Purpose**: Final improvements and documentation updates
 
-- [ ] T054 [P] Update root README.md with Docker container usage instructions
-- [ ] T055 [P] Update backend/CLAUDE.md with Docker-specific development instructions
-- [ ] T056 [P] Update frontend/CLAUDE.md with Docker-specific development instructions
-- [ ] T057 [P] Create example .env files (backend/.env.example, frontend/.env.example) with all required variables
-- [ ] T058 Validate all success criteria from specification are met (image sizes, startup times, health checks)
-- [ ] T059 Run complete quickstart.md validation (build, run, test all commands)
-- [ ] T060 [P] Add troubleshooting section to specs/001-docker-containerization/quickstart.md (common errors and solutions)
+- [x] T054 [P] Update root README.md with Docker container usage instructions
+- [x] T055 [P] Update backend/CLAUDE.md with Docker-specific development instructions
+- [x] T056 [P] Update frontend/CLAUDE.md with Docker-specific development instructions
+- [x] T057 [P] Create example .env files (backend/.env.example, frontend/.env.example) with all required variables
+- [ ] T058 Validate all success criteria from specification are met (image sizes, startup times, health checks) **[BLOCKED: Docker network connectivity]**
+- [ ] T059 Run complete quickstart.md validation (build, run, test all commands) **[BLOCKED: Docker network connectivity]**
+- [x] T060 [P] Add troubleshooting section to specs/001-docker-containerization/quickstart.md (common errors and solutions)
 
 ---
 

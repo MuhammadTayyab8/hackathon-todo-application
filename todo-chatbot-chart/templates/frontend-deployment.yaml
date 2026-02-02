@@ -1,0 +1,60 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "todo-chatbot.fullname" . }}-frontend
+  labels:
+    {{- include "todo-chatbot.labels" . | nindent 4 }}
+    app: todo-frontend
+spec:
+  replicas: {{ .Values.frontend.replicaCount }}
+  selector:
+    matchLabels:
+      app: todo-frontend
+      {{- include "todo-chatbot.selectorLabels" . | nindent 6 }}
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxSurge: 1
+      maxUnavailable: 0
+  template:
+    metadata:
+      labels:
+        app: todo-frontend
+        {{- include "todo-chatbot.selectorLabels" . | nindent 8 }}
+    spec:
+      containers:
+      - name: frontend
+        image: "{{ .Values.frontend.image.repository }}:{{ .Values.frontend.image.tag }}"
+        imagePullPolicy: {{ .Values.frontend.image.pullPolicy }}
+        ports:
+        - name: http
+          containerPort: {{ .Values.frontend.service.port }}
+          protocol: TCP
+        env:
+        - name: NEXT_PUBLIC_API_URL
+          valueFrom:
+            configMapKeyRef:
+              name: {{ include "todo-chatbot.fullname" . }}-config
+              key: NEXT_PUBLIC_API_URL
+        - name: NODE_ENV
+          value: "production"
+        resources:
+          {{- toYaml .Values.frontend.resources | nindent 10 }}
+        readinessProbe:
+          httpGet:
+            path: {{ .Values.frontend.healthCheck.path }}
+            port: http
+          initialDelaySeconds: {{ .Values.frontend.healthCheck.initialDelaySeconds }}
+          periodSeconds: {{ .Values.frontend.healthCheck.periodSeconds }}
+          timeoutSeconds: 5
+          successThreshold: 1
+          failureThreshold: 3
+        livenessProbe:
+          httpGet:
+            path: {{ .Values.frontend.healthCheck.path }}
+            port: http
+          initialDelaySeconds: 30
+          periodSeconds: 30
+          timeoutSeconds: 5
+          successThreshold: 1
+          failureThreshold: 3

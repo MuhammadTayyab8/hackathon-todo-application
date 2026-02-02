@@ -28,9 +28,43 @@ A full-stack Todo application built with Next.js 16 and FastAPI, featuring user 
 
 ## Quick Start
 
-### Option 1: Docker (Recommended)
+### Option 1: Kubernetes with Helm (Production)
 
-The easiest way to run the application is using Docker containers:
+Deploy to Kubernetes using the Helm chart:
+
+```bash
+# 1. Prerequisites
+# - Kubernetes cluster (Minikube, GKE, EKS, AKS)
+# - Helm 3.x installed
+# - Docker images built
+
+# 2. Start Minikube (for local testing)
+minikube start --cpus=4 --memory=8192
+
+# 3. Build and load Docker images
+docker build -t todo-backend:latest backend/
+docker build -t todo-frontend:latest frontend/
+minikube image load todo-backend:latest
+minikube image load todo-frontend:latest
+
+# 4. Install the Helm chart
+helm install todo-app ./todo-chatbot-chart
+
+# 5. Check deployment status
+kubectl get pods
+kubectl get services
+
+# 6. Access the application
+kubectl port-forward service/frontend-service 3000:3000
+# Frontend: http://localhost:3000
+# Backend API: http://localhost:8000 (use separate port-forward)
+```
+
+For detailed Kubernetes deployment instructions, see [Helm Chart README](todo-chatbot-chart/README.md) and [Helm Quickstart Guide](specs/001-helm-chart-deployment/quickstart.md).
+
+### Option 2: Docker (Development)
+
+Run the application using Docker containers:
 
 ```bash
 # 1. Clone the repository
@@ -67,7 +101,7 @@ docker run -d --name todo-frontend -p 3000:3000 \
 
 For detailed Docker instructions, see [Docker Quickstart Guide](specs/001-docker-containerization/quickstart.md).
 
-### Option 2: Local Development
+### Option 3: Local Development
 
 #### Prerequisites
 - Node.js 20+
@@ -224,6 +258,8 @@ For more troubleshooting tips, see the [Docker Quickstart Guide](specs/001-docke
 ## Documentation
 
 - [Project Overview](specs/overview.md)
+- [Kubernetes Deployment with Helm](todo-chatbot-chart/README.md)
+- [Helm Quickstart Guide](specs/001-helm-chart-deployment/quickstart.md)
 - [Docker Quickstart](specs/001-docker-containerization/quickstart.md)
 - [Backend Guidelines](backend/CLAUDE.md)
 - [Frontend Guidelines](frontend/CLAUDE.md)

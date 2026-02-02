@@ -1,0 +1,66 @@
+# Default values for todo-chatbot.
+# This is a YAML-formatted file.
+# Declare variables to be passed into your templates.
+
+# Frontend configuration
+frontend:
+  replicaCount: 2
+  image:
+    repository: todo-frontend
+    tag: latest
+    pullPolicy: Never  # Use Never for Minikube with local images
+  service:
+    name: frontend-service
+    type: ClusterIP
+    port: 3000
+  resources:
+    requests:
+      cpu: 100m
+      memory: 128Mi
+    limits:
+      cpu: 500m
+      memory: 512Mi
+  healthCheck:
+    path: /health
+    initialDelaySeconds: 10
+    periodSeconds: 10
+
+# Backend configuration
+backend:
+  replicaCount: 2
+  image:
+    repository: todo-backend
+    tag: latest
+    pullPolicy: Never  # Use Never for Minikube with local images
+  service:
+    name: backend-service
+    type: ClusterIP
+    port: 8000
+  resources:
+    requests:
+      cpu: 100m
+      memory: 128Mi
+    limits:
+      cpu: 500m
+      memory: 512Mi
+  healthCheck:
+    path: /health
+    initialDelaySeconds: 10
+    periodSeconds: 10
+
+# ConfigMap configuration
+config:
+  frontendApiUrl: http://backend-service:8000
+  backendCorsOrigins: http://frontend-service:3000
+
+# Ingress configuration
+ingress:
+  enabled: false
+  className: nginx
+  hostname: todo-app.local
+  paths:
+    frontend: /
+    backend: /api
+  tls:
+    enabled: false
+    secretName: todo-app-tls

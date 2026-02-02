@@ -1,0 +1,47 @@
+Thank you for installing {{ .Chart.Name }}!
+
+Your release is named {{ .Release.Name }}.
+
+To learn more about the release, try:
+
+  $ helm status {{ .Release.Name }}
+  $ helm get all {{ .Release.Name }}
+
+The application has been deployed with the following components:
+
+1. Frontend Service: {{ .Values.frontend.service.name }}
+   - Replicas: {{ .Values.frontend.replicaCount }}
+   - Port: {{ .Values.frontend.service.port }}
+
+2. Backend Service: {{ .Values.backend.service.name }}
+   - Replicas: {{ .Values.backend.replicaCount }}
+   - Port: {{ .Values.backend.service.port }}
+
+To check the status of your pods:
+
+  $ kubectl get pods -l app.kubernetes.io/instance={{ .Release.Name }}
+
+To access the frontend application:
+
+  $ kubectl port-forward service/{{ .Values.frontend.service.name }} 3000:{{ .Values.frontend.service.port }}
+
+Then open http://localhost:3000 in your browser.
+
+To access the backend API:
+
+  $ kubectl port-forward service/{{ .Values.backend.service.name }} 8000:{{ .Values.backend.service.port }}
+
+Then open http://localhost:8000/docs in your browser for API documentation.
+
+{{- if .Values.ingress.enabled }}
+
+Ingress is enabled. Access the application at:
+  http://{{ .Values.ingress.hostname }}
+
+Make sure to add {{ .Values.ingress.hostname }} to your /etc/hosts file pointing to your cluster IP.
+{{- else }}
+
+To enable external access via Ingress, set ingress.enabled=true in values.yaml and run:
+
+  $ helm upgrade {{ .Release.Name }} ./todo-chatbot-chart
+{{- end }}

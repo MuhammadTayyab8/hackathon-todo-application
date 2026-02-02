@@ -1,0 +1,9 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ include "todo-chatbot.fullname" . }}-config
+  labels:
+    {{- include "todo-chatbot.labels" . | nindent 4 }}
+data:
+  NEXT_PUBLIC_API_URL: {{ .Values.config.frontendApiUrl | quote }}
+  CORS_ORIGINS: {{ .Values.config.backendCorsOrigins | quote }}

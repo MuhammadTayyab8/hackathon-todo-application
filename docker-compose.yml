@@ -1,0 +1,73 @@
+services:
+  backend:
+    image: todo-backend:latest
+    container_name: todo-backend
+    ports:
+      - "8000:8000"
+    environment:
+      # Database Configuration
+      DATABASE_URL: ${DATABASE_URL}
+
+      # Better Auth Configuration
+      BETTER_AUTH_SECRET: ${BETTER_AUTH_SECRET}
+
+      # API Configuration
+      API_HOST: 0.0.0.0
+      API_PORT: 8000
+
+      # AI API Keys
+      GEMINI_API_KEY: ${GEMINI_API_KEY}
+      OPENROUTER_API_KEY: ${OPENROUTER_API_KEY}
+
+      # URLs
+      FRONTEND_URL: http://localhost:3000
+      BACKEND_URL: http://localhost:8000
+
+      # Environment
+      ENVIRONMENT: development
+    networks:
+      - todo-network
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+
+  frontend:
+    image: todo-frontend:latest
+    container_name: todo-frontend
+    ports:
+      - "3000:3000"
+    environment:
+      # Backend API URL (client-side, accessible from browser)
+      NEXT_PUBLIC_API_URL: http://localhost:8000
+
+      # Better Auth Configuration
+      BETTER_AUTH_SECRET: ${BETTER_AUTH_SECRET}
+      BETTER_AUTH_URL: http://localhost:3000
+
+      # Public App URL
+      NEXT_PUBLIC_APP_URL: http://localhost:3000
+
+      # OpenAI Domain Key
+      NEXT_PUBLIC_OPENAI_DOMAIN_KEY: http://localhost:3000
+
+      # Node Configuration
+      NODE_ENV: development
+      PORT: 3000
+    networks:
+      - todo-network
+    depends_on:
+      backend:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:3000/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+
+networks:
+  todo-network:
+    driver: bridge

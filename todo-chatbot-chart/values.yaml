@@ -4,7 +4,7 @@
 
 # Frontend configuration
 frontend:
-  replicaCount: 2
+  replicaCount: 1  # Reduced to 1 for 4GB RAM systems
   image:
     repository: todo-frontend
     tag: latest
@@ -27,7 +27,7 @@ frontend:
 
 # Backend configuration
 backend:
-  replicaCount: 2
+  replicaCount: 1  # Reduced to 1 for 4GB RAM systems
   image:
     repository: todo-backend
     tag: latest
@@ -52,6 +52,10 @@ backend:
 config:
   frontendApiUrl: http://backend-service:8000
   backendCorsOrigins: http://frontend-service:3000
+  # Backend environment variables
+  databaseUrl: "sqlite:///./test.db"  # Using SQLite for local testing (change to PostgreSQL for production)
+  betterAuthSecret: "dev-secret-change-in-production-12345678901234567890"  # Change in production
+  betterAuthUrl: "http://localhost:3000"
 
 # Ingress configuration
 ingress:

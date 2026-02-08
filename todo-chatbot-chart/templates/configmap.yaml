@@ -7,3 +7,6 @@ metadata:
 data:
   NEXT_PUBLIC_API_URL: {{ .Values.config.frontendApiUrl | quote }}
   CORS_ORIGINS: {{ .Values.config.backendCorsOrigins | quote }}
+  DATABASE_URL: {{ .Values.config.databaseUrl | quote }}
+  BETTER_AUTH_SECRET: {{ .Values.config.betterAuthSecret | quote }}
+  BETTER_AUTH_URL: {{ .Values.config.betterAuthUrl | quote }}

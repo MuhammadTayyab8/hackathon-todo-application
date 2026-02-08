@@ -36,6 +36,21 @@ spec:
             configMapKeyRef:
               name: {{ include "todo-chatbot.fullname" . }}-config
               key: CORS_ORIGINS
+        - name: DATABASE_URL
+          valueFrom:
+            configMapKeyRef:
+              name: {{ include "todo-chatbot.fullname" . }}-config
+              key: DATABASE_URL
+        - name: BETTER_AUTH_SECRET
+          valueFrom:
+            configMapKeyRef:
+              name: {{ include "todo-chatbot.fullname" . }}-config
+              key: BETTER_AUTH_SECRET
+        - name: BETTER_AUTH_URL
+          valueFrom:
+            configMapKeyRef:
+              name: {{ include "todo-chatbot.fullname" . }}-config
+              key: BETTER_AUTH_URL
         - name: PYTHONUNBUFFERED
           value: "1"
         resources:
